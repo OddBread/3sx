@@ -5,14 +5,13 @@
 #include "common.h"
 #include "imgui/imgui_wrapper.h"
 #include "main.h"
+#include "platform/video/sdl/scanline_renderer.h"
+#include "platform/video/sdl/sdl_game_renderer.h"
 #include "port/config/config.h"
 #include "port/config/keymap.h"
-#include "port/host_context.h"
 #include "port/input_backend.h"
-#include "port/render_backend.h"
 #include "port/sdl/netplay_screen.h"
 #include "port/sdl/netstats_renderer.h"
-#include "port/sdl/scanline_renderer.h"
 #include "port/sdl/sdl_debug_text.h"
 #include "port/sdl/sdl_message_renderer.h"
 #include "port/sound/adx.h"
@@ -59,7 +58,6 @@ static const Uint64 target_frame_time_ns = 1000000000.0 / TARGET_FPS;
 
 SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
-static PlatformHostContext host_context = { 0 };
 static SDL_Texture* screen_texture = NULL;
 static ScaleMode scale_mode = SCALEMODE_SOFT_LINEAR;
 
@@ -153,9 +151,6 @@ static bool init_window() {
     }
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    host_context.backend_kind = PLATFORM_HOST_BACKEND_SDL;
-    host_context.window = window;
-    host_context.renderer = renderer;
     return true;
 }
 
@@ -201,7 +196,7 @@ static int full_init() {
     }
 
     // Initialize rendering subsystems
-    g_render_backend.init(&host_context);
+    SDLGameRenderer_Init(renderer);
     ScanlineRenderer_Init(renderer);
 
 #if DEBUG
@@ -236,7 +231,7 @@ static int full_init() {
 static void cleanup() {
     AFS_Finish();
     Config_Destroy();
-    g_render_backend.shutdown();
+    SDLGameRenderer_Shutdown();
     ScanlineRenderer_Destroy();
 
 #if DEBUG
@@ -252,9 +247,6 @@ static void cleanup() {
     SDL_DestroyWindow(window);
     renderer = NULL;
     window = NULL;
-    host_context.backend_kind = PLATFORM_HOST_BACKEND_NONE;
-    host_context.window = NULL;
-    host_context.renderer = NULL;
 }
 
 #if DEBUG
@@ -343,7 +335,7 @@ static void begin_frame() {
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderClear(renderer);
 
-    g_render_backend.begin_frame();
+    SDLGameRenderer_BeginFrame();
 
 #if DEBUG
     ImGuiW_BeginFrame();
@@ -432,9 +424,7 @@ static void end_frame() {
     // because NetstatsRenderer uses the existing SFIII rendering pipeline
     NetplayScreen_Render();
     NetstatsRenderer_Render();
-    g_render_backend.render_frame();
-
-    SDL_Texture* scene_canvas = g_render_backend.get_canvas_handle();
+    SDLGameRenderer_RenderFrame();
 
     SDL_SetRenderTarget(renderer, screen_texture);
 
@@ -444,7 +434,7 @@ static void end_frame() {
 
     // Render content
     const SDL_FRect dst_rect = get_letterbox_rect(screen_texture->w, screen_texture->h);
-    SDL_RenderTexture(renderer, scene_canvas, NULL, &dst_rect);
+    SDL_RenderTexture(renderer, SDLGameRenderer_GetCanvas(), NULL, &dst_rect);
 
     // Render screen texture to screen
     SDL_SetRenderTarget(renderer, NULL);
@@ -466,7 +456,7 @@ static void end_frame() {
     SDL_RenderPresent(renderer);
 
     // Cleanup
-    g_render_backend.end_frame();
+    SDLGameRenderer_EndFrame();
 
     // Handle cursor hiding
     hide_cursor_if_needed();
