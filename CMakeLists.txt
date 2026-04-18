@@ -300,6 +300,11 @@ elseif(WIN32)
         ${PROJECT_LICENSE_FILES}
         DESTINATION bin/licenses
     )
+
+    install(FILES
+        ${OPENGL_SHADERS}
+        DESTINATION bin/shaders
+    )
 elseif(UNIX)
     install(TARGETS 3sx
         RUNTIME DESTINATION bin
@@ -317,6 +322,11 @@ elseif(UNIX)
     install(FILES
         ${PROJECT_LICENSE_FILES}
         DESTINATION share/3sx/licenses
+    )
+
+    install(FILES
+        ${OPENGL_SHADERS}
+        DESTINATION bin/shaders
     )
 endif()
 
