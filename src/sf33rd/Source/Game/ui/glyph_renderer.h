@@ -39,9 +39,8 @@ typedef struct GlyphRendererState {
 extern GlyphRendererState glyph_renderer_state;
 
 bool GlyphRenderer_Init();
-void GlyphRenderer_DrawGlyph(GlyphPosition atlas_pos);
-void GlyphRenderer_DrawDigit(Uint8 digit);
-void GlyphRenderer_DrawChar(char c);
-void GlyphRenderer_DrawString(const char* format, ...);
-
+void GlyphRenderer_DrawGlyph(GlyphPosition atlas_pos, GlyphPosition screen_pos, GlyphColor color, float z);
+void GlyphRenderer_DrawDigit(Uint8 digit, GlyphPosition screen_pos, GlyphColor color, float z);
+void GlyphRenderer_DrawChar(char c, GlyphPosition screen_pos, GlyphColor color, float z);
+void GlyphRenderer_DrawString(char c, GlyphPosition screen_pos, GlyphColor color, float z);
 #endif
