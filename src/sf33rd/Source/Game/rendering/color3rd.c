@@ -3,7 +3,6 @@
  * Loading, conversion, and hardware-upload of color palettes
  */
 
-#include "sf33rd/Source/Game/rendering/color3rd.h"
 #include "common.h"
 #include "port/io/resource.h"
 #include "sf33rd/AcrSDK/MiddleWare/PS2/CapSndEng/cse.h"
@@ -12,13 +11,16 @@
 #include "sf33rd/AcrSDK/common/plcommon.h"
 #include "sf33rd/AcrSDK/ps2/flps2vram.h"
 #include "sf33rd/Source/Common/PPGFile.h"
+#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/effect/ng/eff94.h"
 #include "sf33rd/Source/Game/engine/workuser.h"
 #include "sf33rd/Source/Game/io/gd3rd.h"
+#include "sf33rd/Source/Game/rendering/color3rd.h"
 #include "sf33rd/Source/Game/rendering/dc_ghost.h"
 #include "sf33rd/Source/Game/rendering/meta_col.h"
 #include "sf33rd/Source/Game/sound/sound3rd.h"
 #include "sf33rd/Source/Game/system/ramcnt.h"
+
 
 #include <SDL3/SDL.h>
 
@@ -248,6 +250,9 @@ void init_trans_color_ram(s16 id, s16 key, u8 type, u16 data) {
         Push_ramcnt_key(key);
         palUpdateGhostCP3(id * 16, 16);
 
+#if DEBUG
+        ApplyExternalPalette(id); // overwrite slots id*16 and id*16+8 with the .act row
+#endif
         if (id) {
             palUpdateGhostCP3(506, 4);
         } else {
