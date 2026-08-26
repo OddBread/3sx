@@ -13,11 +13,6 @@
 static u16 g_actPalette[ACT_PALETTE_SIZE]; // converted, ready for ColorRAM
 static bool g_actLoaded = false;
 
-static const char* const character_names[] = {
-    "Gill", "Alex", "Ryu",  "Yun",   "Dudley", "Necro",   "Hugo",   "Ibuki", "Elena",  "Oro",
-    "Yang", "Ken",  "Sean", "Urien", "Akuma",  "Chun-Li", "Makoto", "Q",     "Twelve", "Remy",
-};
-
 // Converts RGB data from ACT file into ram format integer
 u16 rgbToRamPalette(u8 r, u8 g, u8 b) {
     return (1 << 15) | ((b >> 3) << 10) | ((g >> 3) << 5) | (r >> 3);
