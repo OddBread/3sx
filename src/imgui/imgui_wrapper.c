@@ -8,6 +8,7 @@
 #include "imgui/dcimgui/dcimgui.h"
 #include "imgui/dcimgui/dcimgui_impl_sdl3.h"
 #include "imgui/dcimgui/dcimgui_impl_sdlgpu3.h"
+#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include <SDL3/SDL.h>
 
 static const char* const character_names[] = {
@@ -65,6 +66,14 @@ static void build_debug_config() {
         ImGui_ComboChar(
             "##stage_override", &debug_config.stage_override, character_names, SDL_arraysize(character_names)
         );
+
+        ImGui_AlignTextToFramePadding();
+        ImGui_Text("Pallette override P1:");
+        ImGui_InputText(".act##palette_override", &debug_config.palette_override[0], 50, 0);
+        ImGui_Checkbox("enabled##palswap", &debug_config.palette_override_enabled[0]);
+        ImGui_Text("Pallette override P2:");
+        ImGui_InputText(".act##palette_override[1]", &debug_config.palette_override[1], 50, 0);
+        ImGui_Checkbox("enabled##palswap2", &debug_config.palette_override_enabled[1]);
 
         ImGui_AlignTextToFramePadding();
         ImGui_Text("Bonus stage override:");

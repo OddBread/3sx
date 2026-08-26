@@ -16,6 +16,8 @@ typedef struct {
     int stage_override;
     u8 cpu_sa;
     bool turbo_buttons;
+    char palette_override[2][128];
+    bool palette_override_enabled[2];
     int bonus_stage_override;
     bool skip_to_ending;
     u8 cpu_active_override;
