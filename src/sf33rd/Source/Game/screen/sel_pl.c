@@ -3,7 +3,6 @@
  * Character/Super Art selection screen
  */
 
-#include "sf33rd/Source/Game/screen/sel_pl.h"
 #include "common.h"
 #include "constants.h"
 #include "sf33rd/AcrSDK/common/pad.h"
@@ -40,6 +39,7 @@
 #include "sf33rd/Source/Game/rendering/mtrans.h"
 #include "sf33rd/Source/Game/screen/next_cpu.h"
 #include "sf33rd/Source/Game/screen/sel_data.h"
+#include "sf33rd/Source/Game/screen/sel_pl.h"
 #include "sf33rd/Source/Game/sound/se.h"
 #include "sf33rd/Source/Game/sound/sound3rd.h"
 #include "sf33rd/Source/Game/stage/bg.h"
@@ -50,6 +50,8 @@
 #include "sf33rd/Source/Game/system/sysdir.h"
 #include "sf33rd/Source/Game/system/work_sys.h"
 #include "sf33rd/Source/Game/ui/sc_sub.h"
+#include "sf33rd\Source\Game\ui\glyph_renderer.h"
+#include <stdio.h>
 
 void Switch_Work();
 void Sel_PL_Control();
@@ -205,8 +207,21 @@ void Switch_Work() {
     }
 }
 
+bool render_word = false;
 void Sel_PL_Control() {
+
     void (*Sel_PL_Cont_Tbl[4])() = { Sel_PL_Cont_1st, Sel_PL_Cont_2nd, Sel_PL_Cont_3rd, Sel_PL_Cont_4th };
+    if ((~p1sw_1 & p1sw_0) & SWK_LEFT_STICK) {
+        printf("P1 clicked the left stick\n");
+        render_word = !render_word;
+    }
+    if ((~p2sw_1 & p2sw_0) & SWK_LEFT_STICK) {
+        printf("P2 clicked the left stick\n");
+    }
+    if (render_word == true) {
+        GlyphRenderer_DrawString("< TEXT123456 >", (GlyphPosition) { 50, 50 }, GLYPH_COLOR_LIGHT, PrioBase[2]);
+    }
+
     Setup_Select_Status();
     Sel_PL_Cont_Tbl[S_No[0]]();
     Face_Control();
@@ -354,13 +369,13 @@ void Setup_Select_Status() {
         Select_Status[0] |= 2;
     }
 
-    if (Sel_Arts_Complete[0] != -1 && plw[0].wu.operator != 0) {
+    if (Sel_Arts_Complete[0] != -1 && plw[0].wu.operator!= 0) {
         Select_Status[1] = 1;
     } else {
         Select_Status[1] = 0;
     }
 
-    if (Sel_Arts_Complete[1] != -1 && plw[1].wu.operator != 0) {
+    if (Sel_Arts_Complete[1] != -1 && plw[1].wu.operator!= 0) {
         Select_Status[1] |= 2;
     }
 }
@@ -742,8 +757,7 @@ void Go_Away_Red_Lines() {
 
 void Player_Select_Control() {
     void (*PL_Sel_Jmp_Tbl[5])() = { PL_Sel_1st, PL_Sel_2nd, PL_Sel_3rd, PL_Sel_4th, PL_Sel_5th };
-
-    if (plw[ID2].wu.operator != 0) {
+    if (plw[ID2].wu.operator!= 0) {
         PL_Sel_Jmp_Tbl[SP_No[ID2][1]]();
     }
 }
@@ -869,7 +883,7 @@ void Setup_Plates(s8 PL_id, s16 Time) {
 void Sel_PL() {
     void (*Sel_PL_Jmp_Tbl[6])() = { Sel_PL_1st, Sel_PL_2nd, Sel_PL_3rd, Sel_PL_4th, Sel_PL_5th, Sel_PL_6th };
 
-    if (plw[ID].wu.operator != 0) {
+    if (plw[ID].wu.operator!= 0) {
         Sel_PL_Jmp_Tbl[SP_No[ID][0]]();
     }
 }
@@ -990,7 +1004,6 @@ void Sel_PL_3rd() {
 u16 Deley_Shot_Sub(s16 PL_id) {
     u16 sw;
     u16 lever;
-
     if (PL_id == 0) {
         sw = ~p1sw_1 & p1sw_0;
     } else {
@@ -1002,7 +1015,9 @@ u16 Deley_Shot_Sub(s16 PL_id) {
 
     switch (Deley_Shot_No[PL_id]) {
     case 0:
+
         if (!(sw & SWK_ATTACKS)) {
+
             break;
         }
 
@@ -1071,7 +1086,7 @@ void Sel_PL_5th() {
         S_No[3] = 1;
     }
 
-    if (plw[0].wu.operator == 0 || plw[1].wu.operator == 0) {
+    if (plw[0].wu.operator== 0 || plw[1].wu.operator== 0) {
         Check_Boss(ID);
     }
 }
@@ -1081,6 +1096,7 @@ void Sel_PL_6th() {
 }
 
 u16 Disposal_Of_Diagonal(u16 sw) {
+
     sw &= SWK_DIRECTIONS;
 
     if (sw == SWK_UP) {
@@ -1524,11 +1540,11 @@ void Check_Exit() {
 }
 
 void Exit_1st() {
-    if (plw[0].wu.operator != 0 && Sel_Arts_Complete[0] >= 0) {
+    if (plw[0].wu.operator!= 0 && Sel_Arts_Complete[0] >= 0) {
         return;
     }
 
-    if (plw[1].wu.operator != 0 && Sel_Arts_Complete[1] >= 0) {
+    if (plw[1].wu.operator!= 0 && Sel_Arts_Complete[1] >= 0) {
         return;
     }
 
