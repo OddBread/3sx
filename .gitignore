@@ -27,3 +27,4 @@ dump
 # LLMs
 
 .mcp.json
+*.act
