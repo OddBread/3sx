@@ -19,7 +19,7 @@ static const char* character_names[] = {
  * colourdefs taken from here
  * https://github.com/Preppy/PalMod/blob/master/palmod/Game/SFIII3_A_DEF.h
  */
-const s16 hudPortraitLookup[20][12] = {
+static const s16 hudPortraitLookup[20][12] = {
     { 3, 4, 6, 10, 19, 20, 22, 26, 16, 33, 34, 37 },   { -1, 1, 4, 7, 8, 10, 60, 49, 51, 53, 54, 56 },
     { 1, 34, 35, 36, 37, 39, 40, 2, 7, 61, 49, 51 },   { 40, 41, 42, 44, 46, 1, 16, 2, 32, 26, 28, 20 },
     { 1, 3, 4, 5, 7, 9, 32, 33, 48, 39, 21, 23 },      { 3, 7, 9, 11, 33, 36, 39, 12, 14, 15, 20, 26 },
