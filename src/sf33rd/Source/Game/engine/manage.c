@@ -3,12 +3,12 @@
  * Engine management
  */
 
-#include "sf33rd/Source/Game/engine/manage.h"
 #include "common.h"
 #include "constants.h"
 #include "main.h"
 #include "sf33rd/Source/Game/animation/appear.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
+#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/effect/eff08.h"
 #include "sf33rd/Source/Game/effect/eff14.h"
 #include "sf33rd/Source/Game/effect/eff35.h"
@@ -25,6 +25,7 @@
 #include "sf33rd/Source/Game/ending/end_main.h"
 #include "sf33rd/Source/Game/engine/cmb_win.h"
 #include "sf33rd/Source/Game/engine/grade.h"
+#include "sf33rd/Source/Game/engine/manage.h"
 #include "sf33rd/Source/Game/engine/plcnt.h"
 #include "sf33rd/Source/Game/engine/workuser.h"
 #include "sf33rd/Source/Game/io/pulpul.h"
@@ -226,7 +227,7 @@ void Game_Manage_1st() {
     if (Mode_Type == MODE_NORMAL_TRAINING || Mode_Type == MODE_PARRY_TRAINING) {
         cpReadyTask(TASK_MENU, Menu_Task);
         task[TASK_MENU].r_no[0] = 7;
-        plw[New_Challenger].wu.operator = 0;
+        plw[New_Challenger].wu.operator= 0;
         Operator_Status[New_Challenger] = 0;
         Lever_LR[0] = 0;
         Lever_LR[1] = 0;
@@ -525,7 +526,7 @@ void Game_Manage_3rd() {
 void setFinishType() {
     if (Play_Type == 0 && Mode_Type == MODE_ARCADE &&
         PL_Wins[Winner_id] >= save_w[Present_Mode].Battle_Number[Play_Type] && VS_Index[Winner_id] > 8 &&
-        plw[Winner_id].wu.operator != 0 && E_Number[Loser_id][0] != 2) {
+        plw[Winner_id].wu.operator!= 0 && E_Number[Loser_id][0] != 2) {
         E_Number[Loser_id][0] = 99;
     }
 
@@ -1130,6 +1131,7 @@ void Game_Manage_10th() {
 
     case 1:
         if (Switch_Screen(0)) {
+            RestoreFaceIconPalettes();
             effect_work_quick_init();
             judge_flag = 0;
             SE_All_Off();
@@ -1214,7 +1216,7 @@ s32 Check_Ending() {
         Extra_Break = 0;
         Pause_ID = WINNER;
         End_PL = My_char[WINNER];
-        plw[WINNER].wu.operator = 0;
+        plw[WINNER].wu.operator= 0;
         Operator_Status[WINNER] = 0;
         SsBgmControl(0, 0);
         Control_Time = 481;
@@ -1353,6 +1355,8 @@ void Update_VS_Data() {
         }
 
         if (Round_Operator[WINNER]) {
+            Stock_My_char[LOSER] = My_char[LOSER];
+            Stock_Player_Color[LOSER] = Player_Color[LOSER];
             SC_Personal_Time[WINNER] = Control_Time;
             Stage_Continue[WINNER] = 0;
             Request_Disp_Rank[LOSER][0] = -1;
@@ -1657,7 +1661,7 @@ void Quick_Entry() {
         Loser_Sub();
 
         if (Mode_Type != MODE_ARCADE) {
-            plw[LOSER].wu.operator = 1;
+            plw[LOSER].wu.operator= 1;
         }
 
         Be_Continue();
@@ -1693,7 +1697,7 @@ s32 Check_Entry_Again() {
 }
 
 void Loser_Sub() {
-    plw[LOSER].wu.operator = 0;
+    plw[LOSER].wu.operator= 0;
     Operator_Status[LOSER] = 0;
     Sel_PL_Complete[LOSER] = 0;
     Sel_Arts_Complete[LOSER] = 0;
