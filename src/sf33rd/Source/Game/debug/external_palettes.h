@@ -12,5 +12,7 @@ u16* ConvActToPal(const char* palName, char* character);
 void overridePaletteTest(const u16* palette);
 u16 rgbToRamPalette(u8 r, u8 g, u8 b);
 void ApplyExternalPalette(s16 id);
+void RestoreFaceIconPalette(s16 id);
+void RestoreFaceIconPalettes(void);
 
 #endif
