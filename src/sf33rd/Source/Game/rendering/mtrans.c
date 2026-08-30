@@ -3,7 +3,6 @@
  * Main Graphics Rendering and Transformation Engine
  */
 
-#include "sf33rd/Source/Game/rendering/mtrans.h"
 #include "common.h"
 #include "sf33rd/AcrSDK/ps2/flps2render.h"
 #include "sf33rd/AcrSDK/ps2/foundaps2.h"
@@ -13,6 +12,7 @@
 #include "sf33rd/Source/Game/rendering/chren3rd.h"
 #include "sf33rd/Source/Game/rendering/color3rd.h"
 #include "sf33rd/Source/Game/rendering/dc_ghost.h"
+#include "sf33rd/Source/Game/rendering/mtrans.h"
 #include "sf33rd/Source/Game/rendering/texcash.h"
 #include "sf33rd/Source/Game/rendering/texgroup.h"
 #include "sf33rd/Source/Game/rendering/texgroup_data.h"
@@ -175,6 +175,9 @@ void mlt_obj_disp(MultiTexture* mt, WORK* wk, s32 base_y) {
     if (texgrplds[i].ok == 0) {
         // The trans data is not valid. Group number: %d\n
         flLogOut("トランスデータが有効ではありません。グループ番号：%d\n", i);
+        if (load_any_texture_grpnum(i, 2) == 0 || texgrplds[i].ok == 0) {
+            return;
+        }
         while (1) {}
     }
 
@@ -271,6 +274,9 @@ void mlt_obj_disp_rgb(MultiTexture* mt, WORK* wk, s32 base_y) {
 
     if (texgrplds[i].ok == 0) {
         // The trans data is not valid. Group number: %d\n
+        if (load_any_texture_grpnum(i, 2) == 0 || texgrplds[i].ok == 0) {
+            return;
+        }
         flLogOut("トランスデータが有効ではありません。グループ番号：%d\n", i);
         while (1) {}
     }
@@ -406,8 +412,12 @@ void mlt_obj_trans_ext(MultiTexture* mt, WORK* wk, s32 base_y) {
     }
 
     if (texgrplds[i].ok == 0) {
+        if (load_any_texture_grpnum(i, 2) == 0 || texgrplds[i].ok == 0) {
+            return;
+        }
         // The trans data is not valid. Group number: %d\n
         flLogOut("トランスデータが有効ではありません。グループ番号：%d\n", i);
+
         while (1) {}
     }
 
@@ -649,6 +659,9 @@ void mlt_obj_trans(MultiTexture* mt, WORK* wk, s32 base_y) {
     }
 
     if (texgrplds[i].ok == 0) {
+        if (load_any_texture_grpnum(i, 2) == 0 || texgrplds[i].ok == 0) {
+            return;
+        }
         // The trans data is not valid. Group number: %d\n
         flLogOut("トランスデータが有効ではありません。グループ番号：%d\n", i);
         while (1) {}
@@ -772,6 +785,9 @@ void mlt_obj_trans_cp3_ext(MultiTexture* mt, WORK* wk, s32 base_y) {
     }
 
     if (texgrplds[i].ok == 0) {
+        if (load_any_texture_grpnum(i, 2) == 0 || texgrplds[i].ok == 0) {
+            return;
+        }
         // The trans data is not valid. Group number: %d\n
         flLogOut("トランスデータが有効ではありません。グループ番号：%d\n", i);
         while (1) {}
@@ -1028,6 +1044,9 @@ void mlt_obj_trans_cp3(MultiTexture* mt, WORK* wk, s32 base_y) {
     }
 
     if (texgrplds[i].ok == 0) {
+        if (load_any_texture_grpnum(i, 2) == 0 || texgrplds[i].ok == 0) {
+            return;
+        }
         // The trans data is not valid. Group number: %d\n
         flLogOut("トランスデータが有効ではありません。グループ番号：%d\n", i);
         while (1) {}
@@ -1156,6 +1175,9 @@ void mlt_obj_trans_rgb_ext(MultiTexture* mt, WORK* wk, s32 base_y) {
     }
 
     if (texgrplds[i].ok == 0) {
+        if (load_any_texture_grpnum(i, 2) == 0 || texgrplds[i].ok == 0) {
+            return;
+        }
         // The trans data is not valid. Group number: %d\n
         flLogOut("トランスデータが有効ではありません。グループ番号：%d\n", i);
         while (1) {}
@@ -1402,6 +1424,9 @@ void mlt_obj_trans_rgb(MultiTexture* mt, WORK* wk, s32 base_y) {
     }
 
     if (texgrplds[i].ok == 0) {
+        if (load_any_texture_grpnum(i, 2) == 0 || texgrplds[i].ok == 0) {
+            return;
+        }
         // The trans data is not valid. Group number: %d\n
         flLogOut("トランスデータが有効ではありません。グループ番号：%d\n", i);
         while (1) {}

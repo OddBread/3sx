@@ -1,6 +1,4 @@
-#include <SDL3/SDL.h>
-#include <stdio.h>
-
+#include "\sf33rd\AcrSDK\ps2\foundaps2.h"
 #include "sf33rd/AcrSDK/common/plcommon.h"
 #include "sf33rd/AcrSDK/ps2/flps2vram.h"
 #include "sf33rd/Source/Common/PPGWork.h"
@@ -9,6 +7,8 @@
 #include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/engine/workuser.h"
 #include "sf33rd/Source/Game/rendering/color3rd.h"
+#include <SDL3/SDL.h>
+#include <stdio.h>
 
 static u16 g_actPalette[ACT_PALETTE_SIZE]; // converted, ready for ColorRAM
 static bool g_actLoaded = false;
@@ -25,7 +25,7 @@ u16* ConvActToPal(const char* palName, char* character) {
     // get path from given file name
     const char* base_path = SDL_GetBasePath();
     char* full_path = NULL;
-    SDL_asprintf(&full_path, "%sassets\\%s\\%s.act", base_path, character, palName);
+    SDL_asprintf(&full_path, "%sassets\\%s\\%s", base_path, character, palName);
 
     // open file, check for inconsistent file size
     SDL_IOStream* io = SDL_IOFromFile(full_path, "rb");
@@ -63,55 +63,32 @@ u16* ConvActToPal(const char* palName, char* character) {
     return g_actPalette;
 }
 
-// Writes the converted palette into the HUD face-icon bank used by player `id`.
-//
-// The in-match health-bar face is drawn by scfont_sqput_face() (ui/sc_sub.c),
-// which selects its palette with:
-//     njSetPaletteBankNumG(0, (Player_Color[id] + My_char[id] * 13) & 0x3FFF)
-// against the ppgScrListFace data list, whose .pal is &ppgScrPalFace. That
-// amounts to using ppgScrPalFace.handle[bank] as the active palette texture.
-// We lock that same handle and overwrite it, mirroring exactly what
-// palUpdateGhostCP3() does for the character sprite palettes in color3rd.c.
+// writes the converted palette into the HUD face-icon bank used by player `id`.
 static void OverrideFaceIconPalette(s16 id, const u16* pal) {
-    // convert the 64-entry sprite palette into the 16-entry portrait format
     u16* por = convPalSprPor((u16*)pal, id);
-
-    if (por == NULL) {
-        printf("face palette conversion failed for player %d\n", id + 1);
+    if (por == NULL)
         return;
-    }
 
     const u16 bank = (u16)((Player_Color[id] + My_char[id] * 13) & 0x3FFF);
-
-    if (ppgScrPalFace.be == 0 || ppgScrPalFace.handle == NULL) {
+    if (ppgScrPalFace.be == 0 || ppgScrPalFace.handle == NULL)
         return;
-    }
-
-    if (bank >= ppgScrPalFace.total) {
-        printf("face bank %d out of range (total %d)\n", bank, ppgScrPalFace.total);
+    if (bank >= ppgScrPalFace.total)
         return;
-    }
 
-    // lock the bank's GPU texture, overwrite with the portrait palette, unlock
-    plContext bits;
+    const u32 handle = ppgScrPalFace.handle[bank];
+    if (handle == 0 || handle > FL_PALETTE_MAX)
+        return; // avoid flPalette[handle-1] with handle==0
 
-    flLockPalette(NULL, ppgScrPalFace.handle[bank], &bits, 2);
-
-    if (bits.ptr != NULL) {
+    plContext bits = { 0 };
+    if (flLockPalette(NULL, handle, &bits, 2) == 1 && bits.ptr != NULL) {
         s32 copyBytes = bits.height * bits.pitch;
-
-        if (copyBytes <= 0) {
-            copyBytes = 0x20; // fall back to 16 entries if the context isn't populated
-        }
-
-        if (copyBytes > (s32)(POR_PALETTE_SIZE * sizeof(u16))) {
-            copyBytes = POR_PALETTE_SIZE * sizeof(u16);
-        }
-
+        if (copyBytes <= 0)
+            copyBytes = (s32)(POR_PALETTE_SIZE * sizeof(u16));
+        if (copyBytes > (s32)(POR_PALETTE_SIZE * sizeof(u16)))
+            copyBytes = (s32)(POR_PALETTE_SIZE * sizeof(u16));
         SDL_memcpy(bits.ptr, por, (size_t)copyBytes);
+        flUnlockPalette(handle);
     }
-
-    flUnlockPalette(ppgScrPalFace.handle[bank]);
 }
 
 // applies external .ACT palettes onto characters from the CSS, based on chosen debug settings. Currently only tied to
