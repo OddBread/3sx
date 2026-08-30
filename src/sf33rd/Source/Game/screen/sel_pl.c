@@ -3,6 +3,7 @@
  * Character/Super Art selection screen
  */
 
+#include "\sf33rd\Source\Game\ui\palette_select.h"
 #include "arcade/arcade_stage.h"
 #include "common.h"
 #include "constants.h"
@@ -51,8 +52,7 @@
 #include "sf33rd/Source/Game/system/sysdir.h"
 #include "sf33rd/Source/Game/system/work_sys.h"
 #include "sf33rd/Source/Game/ui/sc_sub.h"
-#include "sf33rd\Source\Game\ui\glyph_renderer.h"
-#include <stdio.h>
+
 
 static void Route_Handicap_Pad();
 void Switch_Work();
@@ -138,6 +138,8 @@ s16 Play_Type_1st;
 u16 Color7[2];
 u8 Decide_Stage;
 u8 hc3alpha;
+static u8 cursorLock[2];
+bool renderWord = false;
 
 /// Side whose pad makes the selections in VS mode against a CPU
 static s16 VS_Lead_ID;
@@ -289,20 +291,22 @@ void Switch_Work() {
     }
 }
 
-bool render_word = false;
 void Sel_PL_Control() {
 
     void (*Sel_PL_Cont_Tbl[4])() = { Sel_PL_Cont_1st, Sel_PL_Cont_2nd, Sel_PL_Cont_3rd, Sel_PL_Cont_4th };
     if ((~p1sw_1 & p1sw_0) & SWK_LEFT_STICK) {
-        printf("P1 clicked the left stick\n");
-        render_word = !render_word;
+
+        Sound_SE(ID + 98);
+        cursorLock[0] ^= 1;
+        TogglePaletteSelect(0);
     }
     if ((~p2sw_1 & p2sw_0) & SWK_LEFT_STICK) {
-        printf("P2 clicked the left stick\n");
+        Sound_SE(ID + 98);
+        cursorLock[1] ^= 1;
+        TogglePaletteSelect(1);
     }
-    if (render_word == true) {
-        GlyphRenderer_DrawString("< TEXT123456 >", (GlyphPosition) { 50, 50 }, GLYPH_COLOR_LIGHT, PrioBase[2]);
-    }
+    RenderPaletteSelect(0);
+    RenderPaletteSelect(1);
 
     Setup_Select_Status();
     Sel_PL_Cont_Tbl[S_No[0]]();
@@ -321,7 +325,10 @@ void Sel_PL_Cont_1st() {
     Switch_Screen(1);
     S_No[0]++;
     All_Clear_Suicide();
+    ClearPaletteSelect();
     SsBgmHalfVolume(0);
+    cursorLock[0] = 0;
+    cursorLock[1] = 0;
     Face_No[0] = 0;
     Face_No[1] = 0;
     SO_No[0] = 0;
@@ -865,6 +872,7 @@ void PL_Sel_1st() {
         }
 
         Sel_Arts_Complete[ID2] = 0;
+
         Setup_Plates(ID2, 0x55);
         effect_50_init(ID2, 1, 0);
         effect_50_init(ID2, 1, 1);
@@ -973,7 +981,6 @@ void Sel_PL() {
 
 void Sel_PL_1st() {
     u16 Rnd;
-
     if (Exit_No) {
         return;
     }
@@ -1149,13 +1156,17 @@ void Sel_PL_5th() {
 
     if (Demo_Flag == 0) {
         if (ID) {
+
             Sel_Arts_Sub(1, Check_Demo_Data(1), 0);
         } else {
+
             Sel_Arts_Sub(0, Check_Demo_Data(0), 0);
         }
     } else if (ID) {
+
         Sel_Arts_Sub(1, ~p2sw_1 & p2sw_0, p2sw_0);
     } else {
+
         Sel_Arts_Sub(0, ~p1sw_1 & p1sw_0, p1sw_0);
     }
 
@@ -1213,10 +1224,12 @@ void Sel_PL_Sub(s16 PL_id, u16 sw) {
     }
 
     if (sw == 0) {
-        Auto_Repeat_Sub(PL_id);
+        if (!cursorLock[PL_id]) {
+            Auto_Repeat_Sub(PL_id);
+        }
     }
 
-    if ((Cursor_Timer[PL_id] -= 1) == 0) {
+    if (!cursorLock[PL_id] && (Cursor_Timer[PL_id] -= 1) == 0) {
         Cursor_Timer[PL_id] = 1;
 
         if (sw & SWK_RIGHT) {
@@ -1231,6 +1244,15 @@ void Sel_PL_Sub(s16 PL_id, u16 sw) {
         } else if (sw & SWK_DOWN) {
             Cursor_Timer[PL_id] = 5;
             Sel_PL_Sub_CD(PL_id);
+        }
+    } else {
+        // controls for custom palette selection
+        if (sw & SWK_RIGHT) {
+            ScrollPaletteList(PL_id, 1);
+            Sound_SE(ID + 96);
+        } else if (sw & SWK_LEFT) {
+            ScrollPaletteList(PL_id, -1);
+            Sound_SE(ID + 96);
         }
     }
 
@@ -1263,9 +1285,11 @@ void Sel_PL_Sub(s16 PL_id, u16 sw) {
     }
 
     Sound_SE(ID + 98);
+    PaletteSelectVisibility(PL_id, false);
     Sound_SE(*Free_Ptr[PL_id]++);
     Setup_PL_Color(PL_id, sw);
     Correct_Control_Time(PL_id);
+    cursorLock[0] = 0;
 }
 
 void Sel_PL_Sub_CR(s16 PL_id) {
