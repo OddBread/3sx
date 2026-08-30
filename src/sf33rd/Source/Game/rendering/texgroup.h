@@ -16,6 +16,7 @@ void purge_player_texture(s16 id);
 
 /// Reserve memory for character select sprites
 void reservMemKeySelObj();
+s32 load_any_texture_grpnum(u8 grp, u8 kokey);
 
 /// Check if character select sprites are loaded and load if necessary
 void checkSelObjFileLoaded();
