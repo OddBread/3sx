@@ -26,9 +26,7 @@ u8 paletteSelectVisible[2] = { 0, 0 };
 GlyphPosition paletteSelectPosition[2] = { (GlyphPosition) { 40, 20 }, (GlyphPosition) { 270, 100 } };
 // stores the index of the custom palette currently being looked at
 int paletteIndex[2] = { 0, 0 };
-// store the formatted palette displays for each player
-char* formattedDisplay[2] = { NULL, NULL };
-
+// TODO: move all storage via debug_config to a different location
 // move a player's palette selection a defined number of steps foreward or back (usually just 1 or -1)
 void ScrollPaletteList(u8 id, s8 step) {
     if (palLen[id] == 0) {
@@ -37,7 +35,7 @@ void ScrollPaletteList(u8 id, s8 step) {
 
     // step == 0 means the scroll is being called to update the displayed palette
     if (step == 0) {
-        SDL_asprintf(&formattedDisplay[id], "< %d: %s >", paletteIndex[id], palettes[id][paletteIndex[id]]);
+        // SDL_asprintf(&formattedDisplay[id], "< %d: %s >", paletteIndex[id], palettes[id][paletteIndex[id]]);
         return;
     }
 
@@ -52,10 +50,10 @@ void ScrollPaletteList(u8 id, s8 step) {
         debug_config.palette_override[id], palettes[id][paletteIndex[id]], sizeof(debug_config.palette_override[id])
     );
 
-    SDL_asprintf(&formattedDisplay[id], "< %d: %s >", paletteIndex[id], palettes[id][paletteIndex[id]]);
+    // SDL_asprintf(&formattedDisplay[id], "< %d: %s >", paletteIndex[id], palettes[id][paletteIndex[id]]);
 }
 
-// get a list of all of the palettes for a player's currently selected character
+//  get a list of all of the palettes for a player's currently selected character
 void GetCharacterPalettes(u8 id, u8 character) {
     // empty the player's palette list
     SDL_free(palettes[id]);
@@ -70,7 +68,6 @@ void GetCharacterPalettes(u8 id, u8 character) {
 
     char** tempPals = SDL_GlobDirectory(full_path, "*.act", 0, &paletteCount);
     if (paletteCount < 1) {
-        SDL_asprintf(&formattedDisplay[id], "< NO PALETTES INSTALLED >");
         return;
     }
     palLen[id] = paletteCount;
@@ -78,9 +75,6 @@ void GetCharacterPalettes(u8 id, u8 character) {
     SDL_strlcpy(
         debug_config.palette_override[id], palettes[id][paletteIndex[id]], sizeof(debug_config.palette_override[id])
     );
-    if (formattedDisplay[id] == NULL) {
-        ScrollPaletteList(id, 0);
-    }
 }
 
 // toggles the palette select
@@ -92,7 +86,7 @@ void TogglePaletteSelect(u8 id) {
         paletteIndex[id] = 0;
     } else {
         // reset the stored indexes upon closing the menu
-        formattedDisplay[id] = NULL;
+        palettes[id] = NULL;
         paletteIndex[id] = 0;
         SDL_strlcpy(debug_config.palette_override[id], "", sizeof(debug_config.palette_override[id]));
     }
@@ -109,7 +103,8 @@ void ClearPaletteSelect() {
     ScrollPaletteList(0, (paletteIndex[0] * -1));
     ScrollPaletteList(1, (paletteIndex[1] * -1));
     for (int i = 0; i < 2; i++) {
-        formattedDisplay[i] = NULL;
+        palettes[i] = NULL;
+        SDL_strlcpy(debug_config.palette_override[i], "", sizeof(debug_config.palette_override[i]));
         paletteSelectEnabled[i] = 0;
     }
 }
@@ -117,6 +112,14 @@ void ClearPaletteSelect() {
 // renders the palette selection every frame, assuming it's enabled
 void RenderPaletteSelect(u8 id) {
     if (paletteSelectVisible[id] && paletteSelectEnabled[id]) {
-        GlyphRenderer_DrawString(formattedDisplay[id], paletteSelectPosition[id], GLYPH_COLOR_DEFAULT, PrioBase[2]);
+        glyph_renderer_state.position = paletteSelectPosition[id];
+        glyph_renderer_state.color = GLYPH_COLOR_DEFAULT;
+        glyph_renderer_state.z = PrioBase[2];
+        if (palLen[id] < 1) {
+            glyph_renderer_state.color = GLYPH_COLOR_HEAVY;
+            GlyphRenderer_DrawString("< NO PALETTES FOUND >");
+        } else {
+            GlyphRenderer_DrawString("%d: %s", paletteIndex[id], palettes[id][paletteIndex[id]]);
+        }
     }
 }

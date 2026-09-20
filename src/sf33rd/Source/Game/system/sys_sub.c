@@ -32,6 +32,7 @@
 #include "sf33rd/Source/Game/system/sys_sub2.h"
 #include "sf33rd/Source/Game/system/sysdir.h"
 #include "sf33rd/Source/Game/system/work_sys.h"
+#include "sf33rd/Source/Game/ui/palette_select.h"
 #include "sf33rd/Source/Game/ui/sc_sub.h"
 
 #if NETPLAY_ENABLED
@@ -1018,6 +1019,7 @@ void Soft_Reset_Sub() {
     Bg_TexInit();
     Purge_mmtm_area(6);
     Make_texcash_of_list(6);
+    ClearPaletteSelect();
     RestoreFaceIconPalettes();
     pulpul_stop();
     init_pulpul_work();
