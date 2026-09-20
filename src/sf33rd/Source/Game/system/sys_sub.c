@@ -3,13 +3,13 @@
  * System State and Management Hub
  */
 
-#include "sf33rd/Source/Game/system/sys_sub.h"
 #include "common.h"
 #include "main.h"
 #include "port/config/config.h"
 #include "sf33rd/AcrSDK/common/mlPAD.h"
 #include "sf33rd/Source/Game/com/com_data.h"
 #include "sf33rd/Source/Game/com/com_datu.h"
+#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/effect/eff93.h"
 #include "sf33rd/Source/Game/effect/effb8.h"
 #include "sf33rd/Source/Game/effect/effect.h"
@@ -28,6 +28,7 @@
 #include "sf33rd/Source/Game/sound/sound3rd.h"
 #include "sf33rd/Source/Game/stage/bg.h"
 #include "sf33rd/Source/Game/stage/bg_sub.h"
+#include "sf33rd/Source/Game/system/sys_sub.h"
 #include "sf33rd/Source/Game/system/sys_sub2.h"
 #include "sf33rd/Source/Game/system/sysdir.h"
 #include "sf33rd/Source/Game/system/work_sys.h"
@@ -252,11 +253,11 @@ bool Cut_Cut_Cut() {
         return false;
     }
 
-    if (plw[0].wu.operator && (p1sw_0 & SWK_ATTACKS)) {
+    if (plw[0].wu.operator&&(p1sw_0 & SWK_ATTACKS)) {
         return true;
     }
 
-    if (plw[1].wu.operator && (p2sw_0 & SWK_ATTACKS)) {
+    if (plw[1].wu.operator&&(p2sw_0 & SWK_ATTACKS)) {
         return true;
     }
 
@@ -285,7 +286,7 @@ void Score_Sub() {
     }
 
     for (PL_id = 0; PL_id < 2; PL_id++) {
-        if ((Mode_Type != MODE_VERSUS && Mode_Type != MODE_REPLAY) && plw[PL_id].wu.operator == 0) {
+        if ((Mode_Type != MODE_VERSUS && Mode_Type != MODE_REPLAY) && plw[PL_id].wu.operator== 0) {
             continue;
         }
 
@@ -973,11 +974,11 @@ s32 Cut_Cut_Sub(s16 xx) {
         return 1;
     }
 
-    if (plw[0].wu.operator && (p1sw_0 & SWK_ATTACKS)) {
+    if (plw[0].wu.operator&&(p1sw_0 & SWK_ATTACKS)) {
         return xx;
     }
 
-    if (plw[1].wu.operator && (p2sw_0 & SWK_ATTACKS)) {
+    if (plw[1].wu.operator&&(p2sw_0 & SWK_ATTACKS)) {
         return xx;
     }
 
@@ -1017,6 +1018,7 @@ void Soft_Reset_Sub() {
     Bg_TexInit();
     Purge_mmtm_area(6);
     Make_texcash_of_list(6);
+    RestoreFaceIconPalettes();
     pulpul_stop();
     init_pulpul_work();
     pp_operator_check_flag(1);
@@ -1063,12 +1065,12 @@ void Check_Replay() {
         Replay_Status[0] = 1;
         Replay_Status[1] = 1;
 
-        if (plw[0].wu.operator == 0) {
+        if (plw[0].wu.operator== 0) {
             Replay_Status[0] = 0;
             CP_No[0][0] = 0;
         }
 
-        if (plw[1].wu.operator == 0) {
+        if (plw[1].wu.operator== 0) {
             Replay_Status[1] = 0;
             CP_No[1][0] = 0;
         }
@@ -1288,7 +1290,7 @@ void Replay(s16 PL_id) {
         Demo_Timer[PL_id] = buff + 1;
     }
 
-    if (plw[PL_id].wu.operator == 0) {
+    if (plw[PL_id].wu.operator== 0) {
         if (PL_id) {
             p2sw_0 = 0;
         } else {
