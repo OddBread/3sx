@@ -1,8 +1,8 @@
 #if DEBUG && IMGUI
 
-#include "imgui/imgui_wrapper.h"
 #include "arcade/arcade_stage.h"
 #include "constants.h"
+#include "imgui/imgui_wrapper.h"
 #include "platform/app/sdl/sdl_app.h"
 #include "port/paths.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
@@ -160,10 +160,20 @@ static void build_debug_config() {
 
         ImGui_AlignTextToFramePadding();
         ImGui_Text("Pallette override P1:");
-        ImGui_InputText(".act##palette_override", &debug_config.palette_override[0], 50, 0);
+        ImGui_InputText(
+            ".act##palette_override[0]",
+            debug_config.palette_override[0],
+            SDL_arraysize(debug_config.palette_override[0]),
+            0
+        );
         ImGui_Checkbox("enabled##palswap", &debug_config.palette_override_enabled[0]);
         ImGui_Text("Pallette override P2:");
-        ImGui_InputText(".act##palette_override[1]", &debug_config.palette_override[1], 50, 0);
+        ImGui_InputText(
+            ".act##palette_override[1]",
+            debug_config.palette_override[1],
+            SDL_arraysize(debug_config.palette_override[1]),
+            0
+        );
         ImGui_Checkbox("enabled##palswap2", &debug_config.palette_override_enabled[1]);
 
         ImGui_AlignTextToFramePadding();
