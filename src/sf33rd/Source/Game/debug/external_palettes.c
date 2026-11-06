@@ -38,7 +38,7 @@ u16 rgbToRamPalette(u8 r, u8 g, u8 b) {
 
 // Converts a .ACT file to the palette format 3S uses internally. Takes a palette name and character ID to locate it in
 // /assets to not assign palettes to characters they weren't made for.
-u16* ConvActToPal(const char* palName, char* character) {
+u16* ConvActToPal(const char* palName, const char* character) {
 
     // get path from given file name
     const char* base_path = SDL_GetBasePath();
@@ -126,46 +126,41 @@ static void OverrideFaceIconPalette(s16 id, const u16* pal) {
 // TODO:make this no longer debug-only once palette overrides moved out of debugconfig
 void ApplyExternalPalette(s16 id) {
 #if DEBUG
-    const u16* pal = NULL;
-    char* character = character_names[My_char[id]];
-    if (id > 1 || (debug_config.palette_override[id][0] == '\0' && debug_config.palette_override_enabled[id] == 1)) {
-        printf("No palette specified for player %d, ignoring...\n", id + 1);
+    if (id < 0 || id > 1) {
         return;
     }
+
     if (debug_config.palette_override_enabled[id] != 1) {
         RestoreFaceIconPalette(id);
         return;
     }
-    if (debug_config.palette_override_enabled[id] == 1) {
-        pal = ConvActToPal(debug_config.palette_override[id], character);
-    } else {
-        printf("custom palette disabled for player %d, skipping...\n", id);
+
+    const u16 character_id = (u16)My_char[id];
+    const char* character =
+        (size_t)character_id < SDL_arraysize(character_names) ? character_names[character_id] : NULL;
+    if (character == NULL || debug_config.palette_override[id][0] == '\0') {
+        printf("No palette specified for player %d, ignoring...\n", id + 1);
         return;
     }
 
+    u16* pal = ConvActToPal(debug_config.palette_override[id], character);
     if (pal == NULL) {
         printf("could not return formatted palette for player %d, ignoring...\n", id + 1);
         return;
     }
 
-    // each character palette uses 2 different banks for facing left/right, which is why there are 2 fills to ColorRAM
-    if (debug_config.palette_override_enabled[id] == 1) {
-        for (int i = 0; i < 64; i++) {
-            // writes to character sprite RAM
-            ColorRAM[id * 16][i] = pal[i];
-            ColorRAM[id * 16 + 8][i] = pal[i];
-        }
-        // update char sprite banks
-        palUpdateGhostCP3(id * 16, 1);
-        palUpdateGhostCP3(id * 16 + 8, 1);
-
-        // update the HUD face-icon palette (ppgScrPalFace bank) for this player
-        OverrideFaceIconPalette(id, pal);
+    // change the colour of the character in the RAM, based on the given palette
+    for (int i = 0; i < 64; i++) {
+        ColorRAM[id * 16][i] = pal[i];
+        ColorRAM[id * 16 + 8][i] = pal[i];
     }
 
+    // update the character palette
+    palUpdateGhostCP3(id * 16, 1);
+    palUpdateGhostCP3(id * 16 + 8, 1);
+    OverrideFaceIconPalette(id, pal);
 #endif
 }
-
 // puts the original HUD face-icon palette back for player `id`.
 void RestoreFaceIconPalette(s16 id) {
     if (id > 1 || g_facePalBackedUpBank[id] == -1)

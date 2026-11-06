@@ -53,7 +53,6 @@
 #include "sf33rd/Source/Game/system/work_sys.h"
 #include "sf33rd/Source/Game/ui/sc_sub.h"
 
-
 static void Route_Handicap_Pad();
 void Switch_Work();
 void Sel_PL_Control();
@@ -1247,12 +1246,14 @@ void Sel_PL_Sub(s16 PL_id, u16 sw) {
         }
     } else {
         // controls for custom palette selection
-        if (sw & SWK_RIGHT) {
-            ScrollPaletteList(PL_id, 1);
-            Sound_SE(ID + 96);
-        } else if (sw & SWK_LEFT) {
-            ScrollPaletteList(PL_id, -1);
-            Sound_SE(ID + 96);
+        if (cursorLock[PL_id]) {
+            if (sw & SWK_RIGHT) {
+                ScrollPaletteList(PL_id, 1);
+                Sound_SE(ID + 96);
+            } else if (sw & SWK_LEFT) {
+                ScrollPaletteList(PL_id, -1);
+                Sound_SE(ID + 96);
+            }
         }
     }
 
