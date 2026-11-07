@@ -8,6 +8,7 @@
 #define ACT_PALETTE_SIZE 256
 
 u16 rgbToRamPalette(u8 r, u8 g, u8 b);
+bool getColorFromPalette(const char* palName, const char* character, const u8 index, u8 out[3]);
 u16* ConvActToPal(const char* palName, const char* character);
 void overridePaletteTest(const u16* palette);
 u16 rgbToRamPalette(u8 r, u8 g, u8 b);

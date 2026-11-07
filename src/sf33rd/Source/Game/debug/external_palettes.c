@@ -1,3 +1,5 @@
+#include "SDL3/SDL_iostream.h"
+#include "SDL3/SDL_stdinc.h"
 #include "\sf33rd\AcrSDK\ps2\foundaps2.h"
 #include "sf33rd/AcrSDK/common/plcommon.h"
 #include "sf33rd/AcrSDK/ps2/flps2vram.h"
@@ -36,21 +38,23 @@ u16 rgbToRamPalette(u8 r, u8 g, u8 b) {
     return (1 << 15) | ((b >> 3) << 10) | ((g >> 3) << 5) | (r >> 3);
 }
 
-// Converts a .ACT file to the palette format 3S uses internally. Takes a palette name and character ID to locate it in
-// /assets to not assign palettes to characters they weren't made for.
-u16* ConvActToPal(const char* palName, const char* character) {
-
-    // get path from given file name
+// Gets the path of a .ACT file, given the name and what character the palette is for.
+static char* getActPath(const char* palName, const char* character) {
     const char* base_path = SDL_GetBasePath();
     char* full_path = NULL;
     SDL_asprintf(&full_path, "%sassets\\%s\\%s", base_path, character, palName);
+    return full_path;
+}
 
-    // open file, check for inconsistent file size
+// Converts a .ACT file to the palette format 3S uses internally. Takes a palette name and character ID to locate it in
+// /assets to not assign palettes to characters they weren't made for.
+u16* ConvActToPal(const char* palName, const char* character) {
+    char* full_path = getActPath(palName, character);
     SDL_IOStream* io = SDL_IOFromFile(full_path, "rb");
     if (io) {
         Sint64 len = SDL_GetIOSize(io);
         if (len >= 768) {
-            Uint8* buf = SDL_malloc((size_t)len);
+            u8* buf = SDL_malloc((size_t)len);
             if (buf && SDL_ReadIO(io, buf, (size_t)len) == (size_t)len) {
                 int count = 64;
                 if (len >= 772) {
@@ -63,7 +67,6 @@ u16* ConvActToPal(const char* palName, const char* character) {
                     // printf("%d: reading rgb colours %d %d %d", i, buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
                     g_actPalette[i] = rgbToRamPalette(buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
                 }
-                printf("palette converted!\n");
             }
             SDL_free(buf);
         }
@@ -75,13 +78,45 @@ u16* ConvActToPal(const char* palName, const char* character) {
     }
     SDL_free(full_path);
     g_actPalette[0] = 0;
-    printf("emptied transparent palette colour...\n");
-    printf("palette created!\n");
-
     return g_actPalette;
 }
 
-// writes the converted palette into the HUD face-icon bank used by player `id`.
+// grabs a singular RGB triplet from a .ACT file.
+// Because the RAM palette colours cannot be cleanly converted back into RGB values, the values have to be found again
+// inside the file.
+bool getColorFromPalette(const char* palName, const char* character, const u8 index, u8 out[3]) {
+    if (palName == NULL || character == NULL) {
+        return false;
+    }
+    char* full_path = getActPath(palName, character);
+    if (full_path == NULL) {
+        return false;
+    }
+    SDL_IOStream* io = SDL_IOFromFile(full_path, "rb");
+    if (io == NULL) {
+        printf(" palette file not found: %s\n", full_path);
+        SDL_free(full_path);
+        return false;
+    }
+    const s64 len = SDL_GetIOSize(io);
+    const s64 offset = (s64)index * 3;
+    bool found = false;
+
+    if (len >= offset + 3 && SDL_SeekIO(io, offset, SDL_IO_SEEK_SET) >= 0) {
+        found = SDL_ReadIO(io, out, 3) == 3;
+    }
+
+    SDL_CloseIO(io);
+    SDL_free(full_path);
+
+    if (!found) {
+        printf("ERROR: bytes for index %d of palette cannot be found\n", index);
+        return false;
+    }
+    return found;
+}
+
+// Writes the converted palette into the HUD face-icon bank used by player `id`.
 static void OverrideFaceIconPalette(s16 id, const u16* pal) {
     // convert the character palette to a portrait palette
     u16* por = convPalSprPor((u16*)pal, id);
@@ -121,8 +156,8 @@ static void OverrideFaceIconPalette(s16 id, const u16* pal) {
     }
 }
 
-// applies external .ACT palettes onto characters from the CSS, based on chosen debug settings. Currently only tied to
-// debug commands.
+// Applies external .ACT palettes onto characters from the CSS, based on chosen debug settings. Currently only tied
+// to debug commands.
 // TODO:make this no longer debug-only once palette overrides moved out of debugconfig
 void ApplyExternalPalette(s16 id) {
 #if DEBUG
@@ -142,13 +177,19 @@ void ApplyExternalPalette(s16 id) {
         printf("No palette specified for player %d, ignoring...\n", id + 1);
         return;
     }
-
     u16* pal = ConvActToPal(debug_config.palette_override[id], character);
     if (pal == NULL) {
         printf("could not return formatted palette for player %d, ignoring...\n", id + 1);
         return;
     }
-
+    // TEST TEST TEST
+    u8 singleColor[3];
+    getColorFromPalette(debug_config.palette_override[id], character, 2, singleColor);
+    printf("found colours: ");
+    for (int i = 0; i < 3; i++) {
+        printf("%d, ", singleColor[i]);
+    }
+    printf(".\n");
     // change the colour of the character in the RAM, based on the given palette
     for (int i = 0; i < 64; i++) {
         ColorRAM[id * 16][i] = pal[i];
@@ -161,7 +202,7 @@ void ApplyExternalPalette(s16 id) {
     OverrideFaceIconPalette(id, pal);
 #endif
 }
-// puts the original HUD face-icon palette back for player `id`.
+// Puts the original HUD face-icon palette back for player `id`.
 void RestoreFaceIconPalette(s16 id) {
     if (id > 1 || g_facePalBackedUpBank[id] == -1)
         return;
@@ -187,7 +228,7 @@ void RestoreFaceIconPalette(s16 id) {
     }
 }
 
-// restores both players' HUD face-icon palettes. Call this when a match ends.
+// Restores both players' HUD face-icon palettes. Call this when a match ends.
 void RestoreFaceIconPalettes(void) {
     RestoreFaceIconPalette(0);
     RestoreFaceIconPalette(1);
