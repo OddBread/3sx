@@ -12,7 +12,7 @@ static const char* character_names[] = {
 };
 /**
  * Contains all the data necessary for swapping between palette formats.
- * Only contains 12 for each character because the first 3 and last 1 are always
+ * Only has 12 for each character because the first 3 and last 1 are always
  * the same.
  * -1 applies pure black, -2 applies pure white (special cases for ken and alex only).
  *
@@ -31,3 +31,13 @@ static const s16 hudPortraitLookup[20][12] = {
     { 1, 2, 3, 6, 32, 12, 14, 15, 33, 35, 26, 19 },    { 42, 43, 46, 29, 20, 22, 24, 26, 28, 1, 3, 5 },
     { 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 1 },      { 3, 4, 6, 7, 9, 10, 12, 13, 14, 15, 21, 23 }
 };
+
+/**
+ * Contains the 3 colours in the palette to show when hovering it on the palette select menu.
+ * 0 is never used here because it is the transparency colour.
+ */
+static const s16 selectPreviewLookup[20][3] = { { 20, 4, 34 },  { 19, 49, 53 }, { 19, 61, 56 }, { 3, 16, 26 },
+                                                { 26, 21, 48 }, { 1, 19, 15 },  { 16, 36, 2 },  { 26, 56, 6 },
+                                                { 18, 34, 7 },  { 18, 3, 37 },  { 17, 2, 15 },  { 2, 49, 56 },
+                                                { 2, 18, 56 },  { 3, 42, 33 },  { 2, 16, 8 },   { 35, 20, 10 },
+                                                { 26, 37, 33 }, { 1, 30, 33 },  { 1, 10, 11 },  { 24, 27, 13 } };
