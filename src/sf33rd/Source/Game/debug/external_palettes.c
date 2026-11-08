@@ -94,7 +94,6 @@ bool getColorFromPalette(const char* palName, const char* character, const u8 in
     }
     SDL_IOStream* io = SDL_IOFromFile(full_path, "rb");
     if (io == NULL) {
-        printf(" palette file not found: %s\n", full_path);
         SDL_free(full_path);
         return false;
     }
