@@ -13,4 +13,5 @@ void PaletteSelectUpdate(u8 id);
 void TogglePaletteSelect(u8 id);
 void ScrollPaletteList(u8 id, s8 step);
 void PaletteSelectVisibility(u8 id, bool vis);
+int GetPalCount(u8 id);
 #endif

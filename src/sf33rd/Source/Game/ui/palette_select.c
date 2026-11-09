@@ -3,11 +3,11 @@
  * character select custom palette selection UI
  */
 
+#include "\sf33rd\Source\Game\ui\palette_select.h"
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_stdinc.h"
 #include "\sf33rd\Source\Game\debug\PaletteBuddy.h"
 #include "\sf33rd\Source\Game\ui\glyph_renderer.h"
-#include "\sf33rd\Source\Game\ui\palette_select.h"
 #include "core/renderer.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
 #include "sf33rd/Source/Game/debug/external_palettes.h"
@@ -137,6 +137,7 @@ void RenderPaletteSelect(u8 id) {
 }
 
 // Move a player's palette selection a defined number of steps foreword or back (usually just 1 or -1)
+// TODO: I accidentally remade modulo from first principles in this function and im too lazy to fix it right now
 void ScrollPaletteList(u8 id, s8 step) {
     if (palLen[id] < 1 || id > 1 || palettes[id] == NULL) {
         return;
@@ -185,6 +186,13 @@ void PaletteSelectVisibility(u8 id, bool vis) {
     paletteSelectVisible[id] = vis;
 }
 
+int GetPalCount(u8 id) {
+    if (id <= 1 && id >= 0) {
+        return palLen[id];
+    } else {
+        return -1;
+    }
+}
 // Clears all palette select data for both players
 void ClearPaletteSelect() {
     for (int i = 0; i < 2; i++) {

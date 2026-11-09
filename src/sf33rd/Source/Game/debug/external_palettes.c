@@ -1,3 +1,4 @@
+#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "SDL3/SDL_iostream.h"
 #include "SDL3/SDL_stdinc.h"
 #include "\sf33rd\AcrSDK\ps2\foundaps2.h"
@@ -6,11 +7,11 @@
 #include "sf33rd/Source/Common/PPGWork.h"
 #include "sf33rd/Source/Game/debug/PaletteBuddy.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
-#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/engine/workuser.h"
 #include "sf33rd/Source/Game/rendering/color3rd.h"
 #include <SDL3/SDL.h>
 #include <stdio.h>
+
 
 static u16 g_actPalette[ACT_PALETTE_SIZE]; // converted, ready for ColorRAM
 static bool g_actLoaded = false;

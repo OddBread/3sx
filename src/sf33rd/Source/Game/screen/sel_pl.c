@@ -3,6 +3,7 @@
  * Character/Super Art selection screen
  */
 
+#include "sf33rd/Source/Game/screen/sel_pl.h"
 #include "\sf33rd\Source\Game\ui\palette_select.h"
 #include "arcade/arcade_stage.h"
 #include "common.h"
@@ -41,7 +42,6 @@
 #include "sf33rd/Source/Game/rendering/mtrans.h"
 #include "sf33rd/Source/Game/screen/next_cpu.h"
 #include "sf33rd/Source/Game/screen/sel_data.h"
-#include "sf33rd/Source/Game/screen/sel_pl.h"
 #include "sf33rd/Source/Game/sound/se.h"
 #include "sf33rd/Source/Game/sound/sound3rd.h"
 #include "sf33rd/Source/Game/stage/bg.h"
@@ -458,13 +458,13 @@ void Setup_Select_Status() {
         Select_Status[0] |= 2;
     }
 
-    if (Sel_Arts_Complete[0] != -1 && plw[0].wu.operator!= 0) {
+    if (Sel_Arts_Complete[0] != -1 && plw[0].wu.operator != 0) {
         Select_Status[1] = 1;
     } else {
         Select_Status[1] = 0;
     }
 
-    if (Sel_Arts_Complete[1] != -1 && plw[1].wu.operator!= 0) {
+    if (Sel_Arts_Complete[1] != -1 && plw[1].wu.operator != 0) {
         Select_Status[1] |= 2;
     }
 }
@@ -846,7 +846,7 @@ void Go_Away_Red_Lines() {
 
 void Player_Select_Control() {
     void (*PL_Sel_Jmp_Tbl[5])() = { PL_Sel_1st, PL_Sel_2nd, PL_Sel_3rd, PL_Sel_4th, PL_Sel_5th };
-    if (plw[ID2].wu.operator!= 0) {
+    if (plw[ID2].wu.operator != 0) {
         PL_Sel_Jmp_Tbl[SP_No[ID2][1]]();
     }
 }
@@ -973,7 +973,7 @@ void Setup_Plates(s8 PL_id, s16 Time) {
 void Sel_PL() {
     void (*Sel_PL_Jmp_Tbl[6])() = { Sel_PL_1st, Sel_PL_2nd, Sel_PL_3rd, Sel_PL_4th, Sel_PL_5th, Sel_PL_6th };
 
-    if (plw[ID].wu.operator!= 0) {
+    if (plw[ID].wu.operator != 0) {
         Sel_PL_Jmp_Tbl[SP_No[ID][0]]();
     }
 }
@@ -1179,7 +1179,7 @@ void Sel_PL_5th() {
         S_No[3] = 1;
     }
 
-    if (plw[0].wu.operator== 0 || plw[1].wu.operator== 0) {
+    if (plw[0].wu.operator == 0 || plw[1].wu.operator == 0) {
         Check_Boss(ID);
     }
 }
@@ -1249,10 +1249,15 @@ void Sel_PL_Sub(s16 PL_id, u16 sw) {
         if (cursorLock[PL_id]) {
             if (sw & SWK_RIGHT) {
                 ScrollPaletteList(PL_id, 1);
-                Sound_SE(ID + 96);
+                if (GetPalCount(PL_id) > 1) {
+                    Sound_SE(ID + 96);
+                }
+
             } else if (sw & SWK_LEFT) {
                 ScrollPaletteList(PL_id, -1);
-                Sound_SE(ID + 96);
+                if (GetPalCount(PL_id) > 1) {
+                    Sound_SE(ID + 96);
+                }
             }
         }
     }
@@ -1648,11 +1653,11 @@ void Check_Exit() {
 }
 
 void Exit_1st() {
-    if (plw[0].wu.operator!= 0 && Sel_Arts_Complete[0] >= 0) {
+    if (plw[0].wu.operator != 0 && Sel_Arts_Complete[0] >= 0) {
         return;
     }
 
-    if (plw[1].wu.operator!= 0 && Sel_Arts_Complete[1] >= 0) {
+    if (plw[1].wu.operator != 0 && Sel_Arts_Complete[1] >= 0) {
         return;
     }
 
