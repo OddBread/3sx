@@ -1,8 +1,8 @@
 #if DEBUG && IMGUI
 
+#include "imgui/imgui_wrapper.h"
 #include "arcade/arcade_stage.h"
 #include "constants.h"
-#include "imgui/imgui_wrapper.h"
 #include "platform/app/sdl/sdl_app.h"
 #include "port/paths.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
@@ -99,6 +99,11 @@ static void plot(const char* label, const float* values, int value_count, int va
     );
 }
 
+static void build_sprite_viewer() {
+    ImGui_AlignTextToFramePadding();
+    ImGui_Checkbox("Sprite viewer", &debug_config.spr_disp_on);
+}
+
 static void build_stage_override_combo() {
     if (!ImGui_BeginCombo("##stage_override", stage_names[debug_config.stage_override], 0)) {
         return;
@@ -187,6 +192,8 @@ static void build_debug_config() {
 
         ImGui_AlignTextToFramePadding();
         ImGui_Checkbox("Skip to ending", &debug_config.skip_to_ending);
+        ImGui_AlignTextToFramePadding();
+        build_sprite_viewer();
     }
 }
 

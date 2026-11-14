@@ -22,6 +22,8 @@ typedef struct {
     bool skip_to_ending;
     u8 cpu_active_override;
     u8 cpu_passive_override;
+    bool spr_disp_on;
+
 } DebugConfig;
 
 extern DebugConfig debug_config;

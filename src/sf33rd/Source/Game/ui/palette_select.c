@@ -17,6 +17,10 @@
 #include <math.h>
 #include <stdio.h>
 
+#if DEBUG
+#include "sf33rd/Source/Game/debug/PaletteViewer.h"
+#endif
+
 // the names of all the palettes each player's character has
 char** palettes[2];
 int palLen[2];
@@ -66,6 +70,7 @@ void GetCharacterPalettes(u8 id, u8 character) {
 }
 
 // Update the preview colors for a specified player
+// TODO: Remove this
 static void UpdatePreviewColors(u8 id, u8 character) {
     if (id > 1 || id < 0 || character > 19) {
         return;
@@ -82,6 +87,7 @@ static void UpdatePreviewColors(u8 id, u8 character) {
 }
 
 // Draws a rect with the specified dimensions and colours
+// TODO: remove this
 static void DrawPreviewRect(float x, float y, float w, float h, unsigned int argb, f32 z) {
     Quad quad;
     quad.v[0] = (Vec3) { x, y, z };         // top-left
@@ -131,6 +137,9 @@ void RenderPaletteSelect(u8 id) {
                     PrioBase[2]
                 );
             }
+#if DEBUG
+            PaletteViewer_Draw();
+#endif
             GlyphRenderer_DrawString("%d: %s", paletteIndex[id], palettes[id][paletteIndex[id]]);
         }
     }
@@ -176,6 +185,10 @@ void TogglePaletteSelect(u8 id) {
         ReleaseCharacterPalettes(id);
         paletteIndex[id] = 0;
         SDL_strlcpy(debug_config.palette_override[id], "", sizeof(debug_config.palette_override[id]));
+#if DEBUG
+        // give the sprite space back to the characters
+        PaletteViewer_Release();
+#endif
     }
 }
 
@@ -184,6 +197,11 @@ void PaletteSelectVisibility(u8 id, bool vis) {
         return;
     }
     paletteSelectVisible[id] = vis;
+    if (!vis) {
+#if DEBUG
+        PaletteViewer_Release(); // confirmed / hidden
+#endif
+    }
 }
 
 int GetPalCount(u8 id) {
@@ -202,4 +220,7 @@ void ClearPaletteSelect() {
         paletteSelectVisible[i] = 0;
         SDL_strlcpy(debug_config.palette_override[i], "", sizeof(debug_config.palette_override[i]));
     }
+#if DEBUG
+    PaletteViewer_Release();
+#endif
 }
