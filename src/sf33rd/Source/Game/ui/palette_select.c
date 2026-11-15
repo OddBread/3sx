@@ -3,19 +3,18 @@
  * character select custom palette selection UI
  */
 
-#include "\sf33rd\Source\Game\ui\palette_select.h"
+#include "/sf33rd/Source/Game/ui/palette_select.h"
+#include "/sf33rd/Source/Game/debug/PaletteBuddy.h"
+#include "/sf33rd/Source/Game/ui/glyph_renderer.h"
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_stdinc.h"
-#include "\sf33rd\Source\Game\debug\PaletteBuddy.h"
-#include "\sf33rd\Source\Game\ui\glyph_renderer.h"
 #include "core/renderer.h"
+#include "sf33rd/Source/Game/debug/PaletteViewer.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
 #include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/engine/workuser.h"
 #include "sf33rd/Source/Game/rendering/mtrans.h"
 #include <SDL3/SDL.h>
-#include <math.h>
-#include <stdio.h>
 
 #if DEBUG
 #include "sf33rd/Source/Game/debug/PaletteViewer.h"
@@ -70,41 +69,22 @@ void GetCharacterPalettes(u8 id, u8 character) {
 }
 
 // Update the preview colors for a specified player
-// TODO: Remove this
+// TODO: replace this with the sprite viewer code
 static void UpdatePreviewColors(u8 id, u8 character) {
     if (id > 1 || id < 0 || character > 19) {
         return;
     }
-    for (int i = 0; i < 3; i++) {
-        u8 rgbBuf[3];
-        getColorFromPalette(
-            debug_config.palette_override[id], character_names[character], selectPreviewLookup[character][i], rgbBuf
-        );
-        unsigned int argb =
-            0xFF000000u | ((unsigned int)rgbBuf[0] << 16) | ((unsigned int)rgbBuf[1] << 8) | (unsigned int)rgbBuf[2];
-        palPrevCol[id][i] = argb;
-    }
-}
 
-// Draws a rect with the specified dimensions and colours
-// TODO: remove this
-static void DrawPreviewRect(float x, float y, float w, float h, unsigned int argb, f32 z) {
-    Quad quad;
-    quad.v[0] = (Vec3) { x, y, z };         // top-left
-    quad.v[1] = (Vec3) { x + w, y, z };     // top-right
-    quad.v[2] = (Vec3) { x, y + h, z };     // bottom-left
-    quad.v[3] = (Vec3) { x + w, y + h, z }; // bottom-right
-    Renderer_DrawSolidQuad(&quad, argb);
-}
-
-// Draws a filled swatch with a solid outline (outline is `thickness` px on every side).
-static void DrawPreviewSwatch(
-    float x, float y, float w, float h, unsigned int fillArgb, unsigned int outlineArgb, float thickness, f32 z
-) {
-    // outline
-    DrawPreviewRect(x - thickness, y - thickness, w + thickness * 2.0f, h + thickness * 2.0f, outlineArgb, z);
-    // fill
-    DrawPreviewRect(x, y, w, h, fillArgb, z);
+    ViewerPaletteFromAct(debug_config.palette_override[id], character_names[character], PALETTE_VIEWER_MTS);
+    // for (int i = 0; i < 3; i++) {
+    //     u8 rgbBuf[3];
+    //     getColorFromPalette(
+    //         debug_config.palette_override[id], character_names[character], selectPreviewLookup[character][i], rgbBuf
+    //     );
+    //     unsigned int argb =
+    //         0xFF000000u | ((unsigned int)rgbBuf[0] << 16) | ((unsigned int)rgbBuf[1] << 8) | (unsigned int)rgbBuf[2];
+    //     palPrevCol[id][i] = argb;
+    // }
 }
 
 // Renders the palette selection every frame, assuming it's enabled
@@ -125,20 +105,8 @@ void RenderPaletteSelect(u8 id) {
             glyph_renderer_state.color = GLYPH_COLOR_HEAVY;
             GlyphRenderer_DrawString("NO PALETTES FOUND");
         } else {
-            for (int i = 0; i < 3; i++) {
-                DrawPreviewSwatch(
-                    (paletteSelectPosition[id].x) + (PALPREVSIZE * i) + (PALPREVSPACING * i) + 10,
-                    (paletteSelectPosition[id].y) + 10,
-                    PALPREVSIZE,
-                    (float)PALPREVSIZE / 1.7,
-                    palPrevCol[id][i],
-                    0xFF212121u,
-                    1.0f,
-                    PrioBase[2]
-                );
-            }
 #if DEBUG
-            PaletteViewer_Draw();
+            PaletteViewer_Draw(id);
 #endif
             GlyphRenderer_DrawString("%d: %s", paletteIndex[id], palettes[id][paletteIndex[id]]);
         }

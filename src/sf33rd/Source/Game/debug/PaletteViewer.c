@@ -23,11 +23,8 @@
 // Colour row the viewer's palette should occupy.
 #define VIEWER_COLOR_ROW 100
 
-#define PALETTE_VIEWER_MTS 13    // Slot for matrix
 #define PALETTE_VIEWER_GROUPS 20 // groups 1..20 == Gill..Remy
-#define PALETTE_VIEWER_X 192
-#define PALETTE_VIEWER_Y 112 // screen centre (y is measured from the bottom)
-#define PALETTE_VIEWER_Z 0   // must stay < PRIO_BASE_SIZE (128)
+#define PALETTE_VIEWER_Z 0       // must stay < PRIO_BASE_SIZE (128)
 
 // the game's character struct, which stores various object properties
 // TODO: make 2 of these once the first is finished
@@ -41,9 +38,11 @@ static s16 viewer_data_key = -1;
 static int loaded_grp = -1;
 static int palette_character = -1;
 static bool anim_ready = false;
+static struct ViewerPos viewer_positions[2] = { { 90, 100 }, { 310, 40 } };
 
-// get a palette from a .ACT file and load it into the color row the preview uses
-static bool viewer_palette_from_act(const char* file, const char* character, s16 mts_slot) {
+// Get a palette from a .ACT file and load it into the color row the preview uses
+// TODO: make this trigger on visibility change instead of just the swapping palettes call
+bool ViewerPaletteFromAct(const char* file, const char* character, s16 mts_slot) {
     // ConvActToPal returns a pointer to a *static* buffer, so copy it immediately.
     u16* pal = ConvActToPal(file, character);
     if (pal == NULL) {
@@ -62,10 +61,9 @@ static bool viewer_palette_from_act(const char* file, const char* character, s16
 // BgMATRIX slot 0 is never used, so we have a clear spot for screen-space sprites. Thanks Capcom!
 static void setup_screen_matrix(void) {
     static bool ready = false;
-    if (ready) {
+    // the matrix only has to be set up once
+    if (ready)
         return;
-    }
-
     njUnitMatrix(NULL);
     njTranslate(NULL, 0, 224, 0);
     njScale(NULL, 1, -1, 1);
@@ -93,40 +91,6 @@ static bool load_char_data(u8 grp) {
     return true;
 }
 
-// ensure the WORK struct has animations and palettes to pull from
-// TODO: hook this up to player ID
-static bool ensure_group(u8 grp, Character character) {
-    // spritegroup swapped, purge old group
-    if (loaded_grp != (int)grp) {
-        // purging group 1 (Gill's group) causes all the animations below 1567 to be purged, which breaks some
-        // helper/dummy anims.
-        if (loaded_grp > 1 && loaded_grp <= PALETTE_VIEWER_GROUPS) {
-            // stops sprite memory from filling up
-            purge_texture_group((u8)loaded_grp);
-        }
-
-        loaded_grp = (int)grp;
-        // anims have to be set up again
-        anim_ready = false;
-    }
-    // ok determines whether the texture has been loaded yet
-    if (texgrplds[grp].ok == 0) {
-        if (load_any_texture_grpnum(grp, 5) == 0)
-            return false;
-        if (!load_char_data(grp))
-            return false;
-
-        // anims have to be re-initialized in paletteviewer_draw
-        anim_ready = false;
-    } else if (texgrplds[grp].key != viewer_data_key) {
-        if (!load_char_data(grp))
-            return false;
-        anim_ready = false;
-    }
-
-    return true;
-}
-
 // Loads the character's colours into CP3 rows 0..15 (what slot 13 reads).
 // TODO: get rid of this and add in .ACT loader code above
 static void ensure_palette(Character character) {
@@ -144,8 +108,8 @@ static void ensure_palette(Character character) {
     viewer_colcd = 0;
 }
 
-void PaletteViewer_Draw(void) {
-    if (!debug_config.spr_disp_on || No_Trans || G_No[1] != 1) {
+void PaletteViewer_Draw(u8 id) {
+    if (!debug_config.spr_disp_on || No_Trans || G_No[1] != 1 || id > 1 || id < 0) {
         if (loaded_grp >= 1 && loaded_grp <= PALETTE_VIEWER_GROUPS && G_No[1] != 1) {
             purge_texture_group((u8)loaded_grp); // safe now: we no longer own any game state
         }
@@ -154,7 +118,7 @@ void PaletteViewer_Draw(void) {
         anim_ready = false;
         return;
     }
-    const int sel = ID_of_Face[Cursor_Y[0]][Cursor_X[0]] + 1;
+    const int sel = ID_of_Face[Cursor_Y[id]][Cursor_X[id]] + 1;
 
     if (sel < 1 || sel > PALETTE_VIEWER_GROUPS)
         return;
@@ -208,24 +172,24 @@ void PaletteViewer_Draw(void) {
 
     // advance the animation
     char_move(&viewer_work);
-
+    // put the character on the matrix
     viewer_work.my_mts = PALETTE_VIEWER_MTS;
     viewer_work.my_trans_mode = get_my_trans_mode(PALETTE_VIEWER_MTS);
-    // the slot of the matrix setuo by setup_screen_matrix
+    // the slot of the matrix setup by setup_screen_matrix
     viewer_work.my_family = 0;
-
-    viewer_work.position_x = PALETTE_VIEWER_X;
-    viewer_work.position_y = PALETTE_VIEWER_Y;
+    // controls position
+    viewer_work.position_x = viewer_positions[0].x;
+    viewer_work.position_y = viewer_positions[0].y;
     viewer_work.position_z = PALETTE_VIEWER_Z;
     viewer_work.my_priority = PALETTE_VIEWER_Z;
     // controls palette
     viewer_work.current_colcd = viewer_colcd;
-
-    viewer_work.cg_flip = 1;
+    // flip based on ID
+    viewer_work.cg_flip = (id + 1) % 2;
 
     if (obj_group_table[viewer_work.cg_number] != grp)
         return;
-
+    // render the viewer_work
     Mtrans_use_trans_mode(&viewer_work, 0);
 }
 
