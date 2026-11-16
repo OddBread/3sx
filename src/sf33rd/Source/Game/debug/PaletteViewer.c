@@ -148,7 +148,7 @@ void PaletteViewer_Draw(u8 id) {
         anim_ready = false;
     }
 
-    ensure_palette(character);
+    // ensure_palette(character);
     setup_screen_matrix();
 
     if (!anim_ready) {

@@ -5,7 +5,6 @@
 
 #define PALPREVSPACING 4
 #define PALPREVSIZE 10
-#define PALNAMEMAX = 100
 
 void RenderPaletteSelect(u8 id);
 void ClearPaletteSelect();

@@ -9,7 +9,6 @@
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_stdinc.h"
 #include "core/renderer.h"
-#include "sf33rd/Source/Game/debug/PaletteViewer.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
 #include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/engine/workuser.h"
@@ -20,15 +19,16 @@
 #include "sf33rd/Source/Game/debug/PaletteViewer.h"
 #endif
 
-// the names of all the palettes each player's character has
+// the filenames of all available palettes
 char** palettes[2];
+// the size of the palettes list for each player
 int palLen[2];
-
+// menu state handling
 u8 paletteSelectEnabled[2] = { 0, 0 };
 u8 paletteSelectVisible[2] = { 0, 0 };
 // the ui positions of the palette selectors for each player
 GlyphPosition paletteSelectPosition[2] = { (GlyphPosition) { 40, 20 }, (GlyphPosition) { 270, 100 } };
-// stores the index of the custom palette currently being looked at
+// stores the index and display name of the custom palette currently being looked at
 int paletteIndex[2] = { 0, 0 };
 // stores the colors to use for the custom palette previews
 u32 palPrevCol[2][3];
@@ -74,17 +74,9 @@ static void UpdatePreviewColors(u8 id, u8 character) {
     if (id > 1 || id < 0 || character > 19) {
         return;
     }
-
+#if DEBUG
     ViewerPaletteFromAct(debug_config.palette_override[id], character_names[character], PALETTE_VIEWER_MTS);
-    // for (int i = 0; i < 3; i++) {
-    //     u8 rgbBuf[3];
-    //     getColorFromPalette(
-    //         debug_config.palette_override[id], character_names[character], selectPreviewLookup[character][i], rgbBuf
-    //     );
-    //     unsigned int argb =
-    //         0xFF000000u | ((unsigned int)rgbBuf[0] << 16) | ((unsigned int)rgbBuf[1] << 8) | (unsigned int)rgbBuf[2];
-    //     palPrevCol[id][i] = argb;
-    // }
+#endif
 }
 
 // Renders the palette selection every frame, assuming it's enabled
