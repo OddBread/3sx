@@ -18,6 +18,8 @@
 #if DEBUG
 #include "sf33rd/Source/Game/debug/PaletteViewer.h"
 #endif
+// max palette name size before truncation occurs
+#define PALNAMEMAX = 16;
 
 // the filenames of all available palettes
 char** palettes[2];
@@ -30,8 +32,7 @@ u8 paletteSelectVisible[2] = { 0, 0 };
 GlyphPosition paletteSelectPosition[2] = { (GlyphPosition) { 40, 20 }, (GlyphPosition) { 270, 100 } };
 // stores the index and display name of the custom palette currently being looked at
 int paletteIndex[2] = { 0, 0 };
-// stores the colors to use for the custom palette previews
-u32 palPrevCol[2][3];
+char paletteName[2][32];
 
 // TODO: move all storage via debug_config to a different location
 
@@ -68,6 +69,19 @@ void GetCharacterPalettes(u8 id, u8 character) {
     );
 }
 
+static void update_palette_name(u8 id) {
+    if (id > 1)
+        return;
+    if (palLen[id] < 1 || palettes[id] == NULL || palettes[id][paletteIndex[id]] == NULL)
+        return;
+
+    SDL_strlcpy(paletteName[id], palettes[id][paletteIndex[id]], sizeof(paletteName[id]));
+    const size_t len = SDL_strlen(paletteName[id]);
+    if (len > 4 && SDL_strcasecmp(&paletteName[id][len - 4], ".act") == 0) {
+        paletteName[id][len - 4] = '\0';
+    }
+}
+
 // Update the preview colors for a specified player
 // TODO: replace this with the sprite viewer code
 static void UpdatePreviewColors(u8 id, u8 character) {
@@ -100,7 +114,7 @@ void RenderPaletteSelect(u8 id) {
 #if DEBUG
             PaletteViewer_Draw(id);
 #endif
-            GlyphRenderer_DrawString("%d: %s", paletteIndex[id], palettes[id][paletteIndex[id]]);
+            GlyphRenderer_DrawString("%d: %s", paletteIndex[id], paletteName[id]);
         }
     }
 }
@@ -126,6 +140,7 @@ void ScrollPaletteList(u8 id, s8 step) {
     SDL_strlcpy(
         debug_config.palette_override[id], palettes[id][paletteIndex[id]], sizeof(debug_config.palette_override[id])
     );
+    update_palette_name(id);
     UpdatePreviewColors(id, ID_of_Face[Cursor_Y[id]][Cursor_X[id]]);
 }
 
@@ -140,10 +155,12 @@ void TogglePaletteSelect(u8 id) {
         GetCharacterPalettes(id, ID_of_Face[Cursor_Y[id]][Cursor_X[id]]);
         UpdatePreviewColors(id, ID_of_Face[Cursor_Y[id]][Cursor_X[id]]);
         paletteIndex[id] = 0;
+        update_palette_name(id);
     } else {
         // reset the stored indexes upon closing the menu
         ReleaseCharacterPalettes(id);
         paletteIndex[id] = 0;
+        SDL_zero(paletteName[id]);
         SDL_strlcpy(debug_config.palette_override[id], "", sizeof(debug_config.palette_override[id]));
 #if DEBUG
         // give the sprite space back to the characters
@@ -175,6 +192,7 @@ int GetPalCount(u8 id) {
 void ClearPaletteSelect() {
     for (int i = 0; i < 2; i++) {
         ReleaseCharacterPalettes(i);
+        SDL_zero(paletteName[i]);
         paletteIndex[i] = 0;
         paletteSelectEnabled[i] = 0;
         paletteSelectVisible[i] = 0;
