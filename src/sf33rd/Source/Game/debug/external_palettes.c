@@ -12,7 +12,6 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>
 
-
 static u16 g_actPalette[ACT_PALETTE_SIZE]; // converted, ready for ColorRAM
 static bool g_actLoaded = false;
 
@@ -73,7 +72,6 @@ u16* ConvActToPal(const char* palName, const char* character) {
         }
         SDL_CloseIO(io);
     } else {
-        printf(" palette file not found: %s\n", full_path);
         SDL_free(full_path);
         return NULL;
     }
@@ -82,7 +80,7 @@ u16* ConvActToPal(const char* palName, const char* character) {
     return g_actPalette;
 }
 
-// grabs a singular RGB triplet from a .ACT file.
+// Grabs a singular RGB triplet from a .ACT file.
 // Because the RAM palette colours cannot be cleanly converted back into RGB values, the values have to be found again
 // inside the file.
 bool getColorFromPalette(const char* palName, const char* character, const u8 index, u8 out[3]) {
