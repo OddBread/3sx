@@ -5,7 +5,8 @@
 #define POR_PALETTE_SIZE 16
 
 u16* convPalSprPor(u16* palSpr, s16 id);
-
+s16 TrainingHandoffSlot(u8 pad_id);
+// TODO: theres another function for character names somewhere I need to find, check how its used in palette_preview.c
 static const char* character_names[] = {
     "Gill", "Alex", "Ryu",  "Yun",   "Dudley", "Necro",   "Hugo",   "Ibuki", "Elena",  "Oro",
     "Yang", "Ken",  "Sean", "Urien", "Akuma",  "Chun-Li", "Makoto", "Q",     "Twelve", "Remy",

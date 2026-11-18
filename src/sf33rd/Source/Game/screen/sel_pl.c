@@ -4,6 +4,7 @@
  */
 
 #include "sf33rd/Source/Game/screen/sel_pl.h"
+#include "/sf33rd/Source/Game/debug/PaletteBuddy.h"
 #include "\sf33rd\Source\Game\ui\palette_select.h"
 #include "arcade/arcade_stage.h"
 #include "common.h"
@@ -293,16 +294,19 @@ void Switch_Work() {
 void Sel_PL_Control() {
 
     void (*Sel_PL_Cont_Tbl[4])() = { Sel_PL_Cont_1st, Sel_PL_Cont_2nd, Sel_PL_Cont_3rd, Sel_PL_Cont_4th };
-    if ((~p1sw_1 & p1sw_0) & SWK_LEFT_STICK) {
+    const s16 slot_p1 = TrainingHandoffSlot(0);
+    const s16 slot_p2 = TrainingHandoffSlot(1);
+
+    if (slot_p1 >= 0 && (~p1sw_1 & p1sw_0) & SWK_LEFT_STICK) {
 
         Sound_SE(ID + 98);
-        cursorLock[0] ^= 1;
-        TogglePaletteSelect(0);
+        cursorLock[slot_p1] ^= 1;
+        TogglePaletteSelect(slot_p1);
     }
-    if ((~p2sw_1 & p2sw_0) & SWK_LEFT_STICK) {
+    if (slot_p2 >= 0 && (~p2sw_1 & p2sw_0) & SWK_LEFT_STICK) {
         Sound_SE(ID + 98);
-        cursorLock[1] ^= 1;
-        TogglePaletteSelect(1);
+        cursorLock[slot_p2] ^= 1;
+        TogglePaletteSelect(slot_p2);
     }
     RenderPaletteSelect(0);
     RenderPaletteSelect(1);

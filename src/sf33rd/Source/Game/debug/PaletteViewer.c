@@ -28,10 +28,10 @@
 
 // the game's character struct, which stores various object properties
 // TODO: make 2 of these once the first is finished
-static WORK viewer_work;
+static WORK viewer_work[2];
 static s16 viewer_colcd = 0;
 // Array of pointers to important character data sections
-static CharInitData viewer_char_data;
+static CharInitData viewer_char_data[2];
 static s16 viewer_data_key = -1;
 
 // states for controlling
@@ -72,7 +72,7 @@ static void setup_screen_matrix(void) {
 }
 
 // Load character data, such as animations, since they haven't been loaded at CSS
-static bool load_char_data(u8 grp) {
+static bool load_char_data(u8 grp, u8 id) {
     if (texgrplds[grp].ok == 0 || texgrplds[grp].key < 0)
         return false;
     if (texgrpdat[grp].mode != TEXGROUP_MODE_CHARACTER)
@@ -85,7 +85,7 @@ static bool load_char_data(u8 grp) {
     u8* chd = base + texgrpdat[grp].to_chd;
     // initialize the character data
     for (int i = 0; i < 25; i++) {
-        ((uintptr_t*)&viewer_char_data)[i] = (uintptr_t)chd + ((u32*)chd)[i];
+        ((uintptr_t*)&viewer_char_data[id])[i] = (uintptr_t)chd + ((u32*)chd)[i];
     }
     viewer_data_key = texgrplds[grp].key;
     return true;
@@ -143,7 +143,7 @@ void PaletteViewer_Draw(u8 id) {
             return;
         }
 
-        if (!load_char_data(grp))
+        if (!load_char_data(grp, id))
             return;
         anim_ready = false;
     }
@@ -152,45 +152,45 @@ void PaletteViewer_Draw(u8 id) {
     setup_screen_matrix();
 
     if (!anim_ready) {
-        if (viewer_data_key < 0 || viewer_char_data.nmca == NULL) {
+        if (viewer_data_key < 0 || viewer_char_data[id].nmca == NULL) {
             return;
         }
-        SDL_zero(viewer_work);
+        SDL_zero(viewer_work[id]);
 
         const int idx = plid_data[character];
         const CharInitData saved = char_init_data[idx];
         // Borrow the game's char_init_data setter to init the preview, then put back whatever was in there
-        char_init_data[idx] = viewer_char_data;
-        viewer_work.charset_id = idx;
-        set_char_base_data(&viewer_work);
+        char_init_data[idx] = viewer_char_data[id];
+        viewer_work[id].charset_id = idx;
+        set_char_base_data(&viewer_work[id]);
         char_init_data[idx] = saved;
 
         // 0,0 sets it to the idle animation
-        set_char_move_init(&viewer_work, 0, 0);
+        set_char_move_init(&viewer_work[id], 0, 0);
         anim_ready = true;
     }
 
     // advance the animation
-    char_move(&viewer_work);
+    char_move(&viewer_work[id]);
     // put the character on the matrix
-    viewer_work.my_mts = PALETTE_VIEWER_MTS;
-    viewer_work.my_trans_mode = get_my_trans_mode(PALETTE_VIEWER_MTS);
+    viewer_work[id].my_mts = PALETTE_VIEWER_MTS;
+    viewer_work[id].my_trans_mode = get_my_trans_mode(PALETTE_VIEWER_MTS);
     // the slot of the matrix setup by setup_screen_matrix
-    viewer_work.my_family = 0;
+    viewer_work[id].my_family = 0;
     // controls position
-    viewer_work.position_x = viewer_positions[0].x;
-    viewer_work.position_y = viewer_positions[0].y;
-    viewer_work.position_z = PALETTE_VIEWER_Z;
-    viewer_work.my_priority = PALETTE_VIEWER_Z;
+    viewer_work[id].position_x = viewer_positions[id].x;
+    viewer_work[id].position_y = viewer_positions[id].y;
+    viewer_work[id].position_z = PALETTE_VIEWER_Z;
+    viewer_work[id].my_priority = PALETTE_VIEWER_Z;
     // controls palette
-    viewer_work.current_colcd = viewer_colcd;
+    viewer_work[id].current_colcd = viewer_colcd;
     // flip based on ID
-    viewer_work.cg_flip = (id + 1) % 2;
+    viewer_work[id].cg_flip = (id + 1) % 2;
 
-    if (obj_group_table[viewer_work.cg_number] != grp)
+    if (obj_group_table[viewer_work[id].cg_number] != grp)
         return;
     // render the viewer_work
-    Mtrans_use_trans_mode(&viewer_work, 0);
+    Mtrans_use_trans_mode(&viewer_work[id], 0);
 }
 
 void PaletteViewer_Release(void) {

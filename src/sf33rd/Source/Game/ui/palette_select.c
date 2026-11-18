@@ -18,6 +18,7 @@
 #if DEBUG
 #include "sf33rd/Source/Game/debug/PaletteViewer.h"
 #endif
+
 // max palette name size before truncation occurs
 #define PALNAMEMAX = 16;
 
@@ -49,6 +50,7 @@ static void ReleaseCharacterPalettes(u8 id) {
 
 //  Get a list of all of the palettes for a player's currently selected character
 void GetCharacterPalettes(u8 id, u8 character) {
+
     // empty the player's palette list
     ReleaseCharacterPalettes(id);
 
@@ -72,6 +74,7 @@ void GetCharacterPalettes(u8 id, u8 character) {
 static void update_palette_name(u8 id) {
     if (id > 1)
         return;
+
     if (palLen[id] < 1 || palettes[id] == NULL || palettes[id][paletteIndex[id]] == NULL)
         return;
 
@@ -88,6 +91,7 @@ static void UpdatePreviewColors(u8 id, u8 character) {
     if (id > 1 || id < 0 || character > 19) {
         return;
     }
+
 #if DEBUG
     ViewerPaletteFromAct(debug_config.palette_override[id], character_names[character], PALETTE_VIEWER_MTS);
 #endif
@@ -98,12 +102,12 @@ void RenderPaletteSelect(u8 id) {
     if (id > 1) {
         return;
     }
+
     if (!paletteSelectVisible[id]) {
         paletteSelectEnabled[id] = 0;
     }
 
     if (paletteSelectVisible[id] && paletteSelectEnabled[id]) {
-
         glyph_renderer_state.position = paletteSelectPosition[id];
         glyph_renderer_state.color = GLYPH_COLOR_DEFAULT;
         glyph_renderer_state.z = PrioBase[2];
@@ -122,6 +126,7 @@ void RenderPaletteSelect(u8 id) {
 // Move a player's palette selection a defined number of steps foreword or back (usually just 1 or -1)
 // TODO: I accidentally remade modulo from first principles in this function and im too lazy to fix it right now
 void ScrollPaletteList(u8 id, s8 step) {
+
     if (palLen[id] < 1 || id > 1 || palettes[id] == NULL) {
         return;
     }
@@ -149,6 +154,7 @@ void TogglePaletteSelect(u8 id) {
     if (id > 1) {
         return;
     }
+
     paletteSelectEnabled[id] ^= 1;
     paletteSelectVisible[id] = paletteSelectEnabled[id];
     if (paletteSelectEnabled[id] == 1) {
@@ -173,6 +179,7 @@ void PaletteSelectVisibility(u8 id, bool vis) {
     if (id > 1) {
         return;
     }
+
     paletteSelectVisible[id] = vis;
     if (!vis) {
 #if DEBUG
@@ -183,6 +190,7 @@ void PaletteSelectVisibility(u8 id, bool vis) {
 
 int GetPalCount(u8 id) {
     if (id <= 1 && id >= 0) {
+
         return palLen[id];
     } else {
         return -1;
