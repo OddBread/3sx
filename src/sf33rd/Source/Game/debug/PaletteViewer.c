@@ -21,39 +21,37 @@
 
 #include <SDL3/SDL.h>
 // Colour row the viewer's palette should occupy.
-#define VIEWER_COLOR_ROW 100
 
 #define PALETTE_VIEWER_GROUPS 20 // groups 1..20 == Gill..Remy
 #define PALETTE_VIEWER_Z 0       // must stay < PRIO_BASE_SIZE (128)
 
 // the game's character struct, which stores various object properties
-// TODO: make 2 of these once the first is finished
 static WORK viewer_work[2];
-static s16 viewer_colcd = 0;
+static s16 viewer_colcd[2] = { 0, 0 };
 // Array of pointers to important character data sections
 static CharInitData viewer_char_data[2];
-static s16 viewer_data_key = -1;
+static s16 viewer_data_key[2] = { -1, -1 };
 
 // states for controlling
-static int loaded_grp = -1;
-static int palette_character = -1;
-static bool anim_ready = false;
-static struct ViewerPos viewer_positions[2] = { { 90, 100 }, { 310, 40 } };
+static int loaded_grp[2] = { -1, -1 };
+static bool anim_ready[2] = { false, false };
+static struct ViewerPos viewer_positions[2] = { { 84, 100 }, { 310, 30 } };
+static int viewer_color_rows[2] = { 100, 164 };
 
 // Get a palette from a .ACT file and load it into the color row the preview uses
 // TODO: make this trigger on visibility change instead of just the swapping palettes call
-bool ViewerPaletteFromAct(const char* file, const char* character, s16 mts_slot) {
+bool ViewerPaletteFromAct(const char* file, const char* character, s16 mts_slot, u8 id) {
     // ConvActToPal returns a pointer to a *static* buffer, so copy it immediately.
     u16* pal = ConvActToPal(file, character);
     if (pal == NULL) {
         return false;
     }
     // put the palette in
-    SDL_memcpy(ColorRAM[VIEWER_COLOR_ROW], pal, 64 * sizeof(u16));
+    SDL_memcpy(ColorRAM[viewer_color_rows[id]], pal, 64 * sizeof(u16));
     if (mts[mts_slot].texList.pal == palGetChunkGhostCP3()) {
         // CP3 bank index == ColorRAM row
-        palUpdateGhostCP3(VIEWER_COLOR_ROW, 1);
-        viewer_colcd = VIEWER_COLOR_ROW;
+        palUpdateGhostCP3(viewer_color_rows[id], 1);
+        viewer_colcd[id] = viewer_color_rows[id];
     }
     return true;
 }
@@ -87,35 +85,35 @@ static bool load_char_data(u8 grp, u8 id) {
     for (int i = 0; i < 25; i++) {
         ((uintptr_t*)&viewer_char_data[id])[i] = (uintptr_t)chd + ((u32*)chd)[i];
     }
-    viewer_data_key = texgrplds[grp].key;
+    viewer_data_key[id] = texgrplds[grp].key;
     return true;
 }
 
-// Loads the character's colours into CP3 rows 0..15 (what slot 13 reads).
-// TODO: get rid of this and add in .ACT loader code above
-static void ensure_palette(Character character) {
-    if (palette_character == (int)character)
+void PaletteViewer_ReleaseSlot(u8 id) {
+    if (id > 1 || id < 0)
         return;
-    const s8 saved_char = My_char[0];
-    const s8 saved_color = Player_Color[0];
-    My_char[0] = (s8)character;
-    Player_Color[0] = 0;
-    load_any_color((u16)character, 2);
-    My_char[0] = saved_char;
-    Player_Color[0] = saved_color;
+    const int grp = loaded_grp[id];
 
-    palette_character = (int)character;
-    viewer_colcd = 0;
+    loaded_grp[id] = -1;
+    viewer_data_key[id] = -1;
+    anim_ready[id] = false;
+
+    if (grp >= 1 && grp <= PALETTE_VIEWER_GROUPS && loaded_grp[id ^ 1] != grp) {
+        purge_texture_group((u8)grp);
+    }
+}
+
+void PaletteViewer_Release(void) {
+    for (int i = 0; i < 2; i++) {
+        PaletteViewer_ReleaseSlot(i);
+    }
 }
 
 void PaletteViewer_Draw(u8 id) {
-    if (!debug_config.spr_disp_on || No_Trans || G_No[1] != 1 || id > 1 || id < 0) {
-        if (loaded_grp >= 1 && loaded_grp <= PALETTE_VIEWER_GROUPS && G_No[1] != 1) {
-            purge_texture_group((u8)loaded_grp); // safe now: we no longer own any game state
+    if (!debug_config.spr_disp_on || No_Trans || id > 1 || id < 0) {
+        if (G_No[1] != 1) {
+            PaletteViewer_ReleaseSlot(id);
         }
-        loaded_grp = -1;
-        viewer_data_key = -1;
-        anim_ready = false;
         return;
     }
     const int sel = ID_of_Face[Cursor_Y[id]][Cursor_X[id]] + 1;
@@ -133,26 +131,26 @@ void PaletteViewer_Draw(u8 id) {
             return;
     }
 
-    if (loaded_grp != (int)grp) {
-        PaletteViewer_Release();
-        loaded_grp = (int)grp;
+    if (loaded_grp[id] != (int)grp) {
+        PaletteViewer_ReleaseSlot(id);
+        loaded_grp[id] = (int)grp;
     }
 
-    if (texgrplds[grp].ok == 0 || texgrplds[grp].key != viewer_data_key) {
+    if (texgrplds[grp].ok == 0 || texgrplds[grp].key != viewer_data_key[id]) {
         if (texgrplds[grp].ok == 0 && load_any_texture_grpnum(grp, 5) == 0) {
             return;
         }
 
         if (!load_char_data(grp, id))
             return;
-        anim_ready = false;
+        anim_ready[id] = false;
     }
 
     // ensure_palette(character);
     setup_screen_matrix();
 
-    if (!anim_ready) {
-        if (viewer_data_key < 0 || viewer_char_data[id].nmca == NULL) {
+    if (!anim_ready[id]) {
+        if (viewer_data_key[id] < 0 || viewer_char_data[id].nmca == NULL) {
             return;
         }
         SDL_zero(viewer_work[id]);
@@ -167,7 +165,7 @@ void PaletteViewer_Draw(u8 id) {
 
         // 0,0 sets it to the idle animation
         set_char_move_init(&viewer_work[id], 0, 0);
-        anim_ready = true;
+        anim_ready[id] = true;
     }
 
     // advance the animation
@@ -183,7 +181,7 @@ void PaletteViewer_Draw(u8 id) {
     viewer_work[id].position_z = PALETTE_VIEWER_Z;
     viewer_work[id].my_priority = PALETTE_VIEWER_Z;
     // controls palette
-    viewer_work[id].current_colcd = viewer_colcd;
+    viewer_work[id].current_colcd = viewer_colcd[id];
     // flip based on ID
     viewer_work[id].cg_flip = (id + 1) % 2;
 
@@ -191,16 +189,6 @@ void PaletteViewer_Draw(u8 id) {
         return;
     // render the viewer_work
     Mtrans_use_trans_mode(&viewer_work[id], 0);
-}
-
-void PaletteViewer_Release(void) {
-    if (loaded_grp >= 1 && loaded_grp <= PALETTE_VIEWER_GROUPS) {
-        purge_texture_group((u8)loaded_grp); // hands the ~2.5 MB back
-    }
-
-    loaded_grp = -1;
-    viewer_data_key = -1;
-    anim_ready = false;
 }
 
 // #endif

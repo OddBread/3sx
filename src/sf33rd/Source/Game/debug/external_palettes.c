@@ -1,4 +1,3 @@
-#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "SDL3/SDL_iostream.h"
 #include "SDL3/SDL_stdinc.h"
 #include "\sf33rd\AcrSDK\ps2\foundaps2.h"
@@ -7,13 +6,13 @@
 #include "sf33rd/Source/Common/PPGWork.h"
 #include "sf33rd/Source/Game/debug/PaletteBuddy.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
+#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/engine/workuser.h"
 #include "sf33rd/Source/Game/rendering/color3rd.h"
 #include <SDL3/SDL.h>
 #include <stdio.h>
 
 static u16 g_actPalette[ACT_PALETTE_SIZE]; // converted, ready for ColorRAM
-static bool g_actLoaded = false;
 
 // backup of the original HUD face-palette colors so the override can be undone later.
 static u16 g_facePalBackup[2][POR_PALETTE_SIZE];
@@ -115,6 +114,7 @@ bool getColorFromPalette(const char* palName, const char* character, const u8 in
 }
 
 // Writes the converted palette into the HUD face-icon bank used by player `id`.
+// Has to be done seperately because the faces are just glyphs that are hardcoded with a palette at runtime.
 static void OverrideFaceIconPalette(s16 id, const u16* pal) {
     // convert the character palette to a portrait palette
     u16* por = convPalSprPor((u16*)pal, id);
@@ -141,12 +141,10 @@ static void OverrideFaceIconPalette(s16 id, const u16* pal) {
             g_facePalBackedUpBank[id] = bank;
             SDL_memcpy(g_facePalBackup[id], bits.ptr, sizeof(u16) * POR_PALETTE_SIZE);
         }
-
+        // number of colours to copy
         s32 copyBytes = bits.height * bits.pitch;
         // clamp the copied bytes to the size of the portrait
-        if (copyBytes <= 0)
-            copyBytes = (s32)(POR_PALETTE_SIZE * sizeof(u16));
-        if (copyBytes > (s32)(POR_PALETTE_SIZE * sizeof(u16)))
+        if (copyBytes <= 0 || copyBytes > (s32)(POR_PALETTE_SIZE * sizeof(u16)))
             copyBytes = (s32)(POR_PALETTE_SIZE * sizeof(u16));
         // copy the portrait colours into the address stored in bits
         SDL_memcpy(bits.ptr, por, (size_t)copyBytes);
@@ -180,26 +178,21 @@ void ApplyExternalPalette(s16 id) {
         printf("could not return formatted palette for player %d, ignoring...\n", id + 1);
         return;
     }
-    // TEST TEST TEST
-    u8 singleColor[3];
-    getColorFromPalette(debug_config.palette_override[id], character, 2, singleColor);
-    printf("found colours: ");
-    for (int i = 0; i < 3; i++) {
-        printf("%d, ", singleColor[i]);
-    }
-    printf(".\n");
     // change the colour of the character in the RAM, based on the given palette
+    // because the game writes different colour palettes for facing left and right (I assume just for gill?), you have
+    // to write to both RAM locations
     for (int i = 0; i < 64; i++) {
         ColorRAM[id * 16][i] = pal[i];
         ColorRAM[id * 16 + 8][i] = pal[i];
     }
 
-    // update the character palette
+    // update the palette with the new ColorRAM contents
     palUpdateGhostCP3(id * 16, 1);
     palUpdateGhostCP3(id * 16 + 8, 1);
     OverrideFaceIconPalette(id, pal);
 #endif
 }
+
 // Puts the original HUD face-icon palette back for player `id`.
 void RestoreFaceIconPalette(s16 id) {
     if (id > 1 || g_facePalBackedUpBank[id] == -1)

@@ -3,9 +3,9 @@
  * character select custom palette selection UI
  */
 
-#include "/sf33rd/Source/Game/ui/palette_select.h"
 #include "/sf33rd/Source/Game/debug/PaletteBuddy.h"
 #include "/sf33rd/Source/Game/ui/glyph_renderer.h"
+#include "/sf33rd/Source/Game/ui/palette_select.h"
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_stdinc.h"
 #include "core/renderer.h"
@@ -93,7 +93,7 @@ static void UpdatePreviewColors(u8 id, u8 character) {
     }
 
 #if DEBUG
-    ViewerPaletteFromAct(debug_config.palette_override[id], character_names[character], PALETTE_VIEWER_MTS);
+    ViewerPaletteFromAct(debug_config.palette_override[id], character_names[character], PALETTE_VIEWER_MTS, id);
 #endif
 }
 
@@ -170,7 +170,7 @@ void TogglePaletteSelect(u8 id) {
         SDL_strlcpy(debug_config.palette_override[id], "", sizeof(debug_config.palette_override[id]));
 #if DEBUG
         // give the sprite space back to the characters
-        PaletteViewer_Release();
+        PaletteViewer_ReleaseSlot(id);
 #endif
     }
 }
@@ -183,7 +183,7 @@ void PaletteSelectVisibility(u8 id, bool vis) {
     paletteSelectVisible[id] = vis;
     if (!vis) {
 #if DEBUG
-        PaletteViewer_Release(); // confirmed / hidden
+        PaletteViewer_ReleaseSlot(id); // confirmed / hidden
 #endif
     }
 }
