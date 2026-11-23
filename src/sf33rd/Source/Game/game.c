@@ -5,6 +5,7 @@
 #include "sf33rd/AcrSDK/common/pad.h"
 #include "sf33rd/Source/Common/PPGWork.h"
 #include "sf33rd/Source/Game/debug/debug_config.h"
+#include "sf33rd/Source/Game/debug/external_palettes.h"
 #include "sf33rd/Source/Game/demo/demo00.h"
 #include "sf33rd/Source/Game/demo/demo01.h"
 #include "sf33rd/Source/Game/demo/demo02.h"
@@ -486,6 +487,9 @@ void Game2_0() {
     ca_check_flag = 1;
     bg_work_clear();
     win_lose_work_clear();
+#if DEBUG
+    ApplyExternalFaceIcons();
+#endif
     player_face_init();
     TATE00();
 }

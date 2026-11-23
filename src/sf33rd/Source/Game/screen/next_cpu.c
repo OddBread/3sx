@@ -4,6 +4,7 @@
  */
 
 #include "sf33rd/Source/Game/screen/next_cpu.h"
+#include "SDL3/SDL_log.h"
 #include "common.h"
 #include "constants.h"
 #include "sf33rd/AcrSDK/common/pad.h"
@@ -40,6 +41,7 @@
 #include "sf33rd/Source/Game/system/sysdir.h"
 #include "sf33rd/Source/Game/system/work_sys.h"
 #include "sf33rd/Source/Game/ui/sc_sub.h"
+#include <stdbool.h>
 
 void Next_CPU_1st();
 void Next_CPU_2nd();
@@ -1178,6 +1180,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
     s8 id_0;
     s8 id_1;
     u16 sw_new = 0;
+    bool pal_lockout_occured = false;
 
     if (plw[PL_id ^ 1].wu.operator == 0) {
         id_0 = -1;
@@ -1207,6 +1210,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
         case SWK_NORTH:
         case SWK_RIGHT_SHOULDER:
             if (Player_Color[PL_id ^ 1] == 0 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 1;
             } else {
                 Player_Color[PL_id] = 0;
@@ -1216,6 +1220,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         default:
             if (Player_Color[PL_id ^ 1] == 1 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 0;
             } else {
                 Player_Color[PL_id] = 1;
@@ -1227,6 +1232,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
         switch (sw) {
         case SWK_WEST:
             if (Player_Color[PL_id ^ 1] == 7 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 10;
             } else {
                 Player_Color[PL_id] = 7;
@@ -1236,6 +1242,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_NORTH:
             if (Player_Color[PL_id ^ 1] == 8 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 11;
             } else {
                 Player_Color[PL_id] = 8;
@@ -1245,6 +1252,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_RIGHT_SHOULDER:
             if (Player_Color[PL_id ^ 1] == 9 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 12;
             } else {
                 Player_Color[PL_id] = 9;
@@ -1254,6 +1262,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_SOUTH:
             if (Player_Color[PL_id ^ 1] == 10 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 7;
             } else {
                 Player_Color[PL_id] = 10;
@@ -1263,6 +1272,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_EAST:
             if (Player_Color[PL_id ^ 1] == 11 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 8;
             } else {
                 Player_Color[PL_id] = 11;
@@ -1272,6 +1282,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         default:
             if (Player_Color[PL_id ^ 1] == 12 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 9;
             } else {
                 Player_Color[PL_id] = 12;
@@ -1283,6 +1294,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
         switch (sw) {
         case SWK_WEST | SWK_RIGHT_SHOULDER | SWK_EAST:
             if (Player_Color[PL_id ^ 1] == 6 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 0;
             } else {
                 Player_Color[PL_id] = 6;
@@ -1292,6 +1304,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_WEST:
             if (Player_Color[PL_id ^ 1] == 0 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 3;
             } else {
                 Player_Color[PL_id] = 0;
@@ -1301,6 +1314,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_NORTH:
             if (Player_Color[PL_id ^ 1] == 1 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 4;
             } else {
                 Player_Color[PL_id] = 1;
@@ -1310,6 +1324,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_RIGHT_SHOULDER:
             if (Player_Color[PL_id ^ 1] == 2 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 5;
             } else {
                 Player_Color[PL_id] = 2;
@@ -1319,6 +1334,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_SOUTH:
             if (Player_Color[PL_id ^ 1] == 3 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 0;
             } else {
                 Player_Color[PL_id] = 3;
@@ -1328,6 +1344,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         case SWK_EAST:
             if (Player_Color[PL_id ^ 1] == 4 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 1;
             } else {
                 Player_Color[PL_id] = 4;
@@ -1337,6 +1354,7 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
         default:
             if (Player_Color[PL_id ^ 1] == 5 && id_0 == id_1) {
+                pal_lockout_occured = true;
                 Player_Color[PL_id] = 2;
             } else {
                 Player_Color[PL_id] = 5;
@@ -1344,6 +1362,18 @@ void Setup_PL_Color(s16 PL_id, u16 sw) {
 
             break;
         }
+    }
+
+    // force vanilla palettes to have priority over a slot if a custom palette has been assigned there
+    // FIXME: this does not take into account palette_override_enabled being changable after selecting a character. make
+    // that not possible anymore
+    if (pal_lockout_occured && !debug_config.palette_override_enabled[PL_id] &&
+        debug_config.palette_override_enabled[PL_id ^ 1]) {
+        const s8 contested = Player_Color[PL_id ^ 1]; // slot the chooser asked for
+        const s8 alternate = Player_Color[PL_id];     // the switch's fallback, guaranteed free
+        // swap the custom and default palette around, since the slot the custom palette is in doesn't matter
+        Player_Color[PL_id ^ 1] = alternate;
+        Player_Color[PL_id] = contested;
     }
 }
 
